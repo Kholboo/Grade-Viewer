@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шалгалтын Анализийн Систем</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f3;--surface:#fff;--border:#e4e2dc;--text:#1a1917;
+  --muted:#8a8880;--accent:#2d5a3d;--accent-light:#e8f0ea;
+  --danger:#c0392b;--radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+.app{max-width:820px;margin:0 auto;padding:40px 20px 80px}
+.header{text-align:center;margin-bottom:48px}
+.header h1{font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:-.5px}
+.header p{color:var(--muted);font-size:.875rem;margin-top:6px;font-weight:300}
+.stepper{display:flex;align-items:center;justify-content:center;margin-bottom:40px;flex-wrap:wrap;gap:4px}
+.step-item{display:flex;align-items:center}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--step-idle,#c8c6c0);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--step-idle,#c8c6c0);background:var(--bg);transition:all .3s;flex-shrink:0}
+.step-dot.done{border-color:var(--accent);background:var(--accent);color:#fff}
+.step-dot.active{border-color:var(--text);color:var(--text)}
+.step-label{font-size:.7rem;color:var(--muted);margin-left:6px;white-space:nowrap}
+.step-label.active{color:var(--text);font-weight:500}
+.step-line{width:28px;height:1px;background:var(--border);margin:0 4px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow)}
+.card-title{font-family:'DM Serif Display',serif;font-size:1.25rem;margin-bottom:24px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:.8rem;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.875rem;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field input[type=number]{-moz-appearance:textfield}
+.field input[type=number]::-webkit-outer-spin-button,.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.checkbox-group{display:flex;gap:24px}
+.checkbox-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem}
+.checkbox-item input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.bp-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.bp-table th{background:var(--bg);color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;font-size:.7rem;padding:10px;text-align:left;border-bottom:1px solid var(--border)}
+.bp-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.bp-table tr:last-child td{border-bottom:none}
+.bp-table input,.bp-table select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.8rem;background:var(--bg);color:var(--text);outline:none}
+.bp-table input:focus,.bp-table select:focus{border-color:var(--accent)}
+.num-badge{display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:.7rem;font-weight:600;text-align:center;line-height:22px}
+.total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--accent-light);border:1px solid #c5dcc9;border-radius:6px;padding:10px 14px;margin-top:16px;font-size:.82rem}
+.total-bar span{font-weight:600;color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#245033}
+.btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.actions{display:flex;justify-content:space-between;margin-top:28px;gap:12px}
+.actions-end{justify-content:flex-end}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone svg{color:var(--muted);margin-bottom:12px}
+.upload-zone p{color:var(--muted);font-size:.875rem}
+.file-name{color:var(--accent);font-weight:500;font-size:.9rem;margin-top:8px}
+.analysis-loading{text-align:center;padding:48px}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.analysis-section:last-child{border-bottom:none}
+.analysis-section h3{font-family:'DM Serif Display',serif;font-size:1rem;margin-bottom:10px;color:var(--accent)}
+.analysis-content{font-size:.875rem;line-height:1.8;color:var(--text);white-space:pre-wrap}
+.pdf-ready{background:var(--accent-light);border:1px solid #c5dcc9;border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+.pdf-ready p{font-size:.875rem;font-weight:500}
+.pdf-ready small{color:var(--muted);font-size:.78rem}
+.error-msg{color:var(--danger);font-size:.82rem;margin-top:10px;padding:10px 14px;background:#fdf0ef;border:1px solid #f5c6c2;border-radius:6px}
+.hint{font-size:.75rem;color:var(--muted);margin-top:6px}
+.hint a{color:var(--accent)}
+.chart-bar-wrap{margin:10px 0}
+.chart-bar-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:4px}
+.chart-bar-bg{height:8px;background:var(--border);border-radius:4px}
+.chart-bar-fill{height:8px;background:var(--accent);border-radius:4px;transition:width .6s ease}
+.info-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-size:.82rem;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.step-panel{display:none}.step-panel.active{display:block}
+@media print{
+  .stepper,.actions,.btn,.upload-zone,.field{display:none!important}
+  .card{box-shadow:none;border:none;padding:0}
+  .analysis-section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Шалгалтын Анализийн Систем</h1>
+    <p>Сурагчдын гүйцэтгэлийг шинжилж, зөвлөмж боловсруулах</p>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper"></div>
+
+  <!-- Step 0: Info -->
+  <div class="step-panel active" id="panel-0">
+    <div class="card">
+      <div class="card-title">Ерөнхий мэдээлэл</div>
+      <div class="grid2">
+        <div class="field"><label>Сургуулийн нэр</label><input id="schoolName" placeholder="Нэр оруулах"></div>
+        <div class="field"><label>Анги</label><input id="grade" placeholder="Жишээ: 10А"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Сурагчийн тоо</label><input id="studentCount" type="number" min="1" placeholder="0"></div>
+        <div class="field"><label>Даалгаврын тоо</label><input id="taskCount" type="number" min="1" placeholder="0"></div>
+      </div>
+      <div class="field">
+        <label>Таксаноми</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="radio" name="taxonomy" value="Bloom's" checked> Bloom's</label>
+          <label class="checkbox-item"><input type="radio" name="taxonomy" value="Kendall & Marzano's"> Kendall &amp; Marzano's</label>
+        </div>
+      </div>
+      <div class="actions actions-end">
+        <button class="btn btn-primary" onclick="goStep1()">Үргэлжлүүлэх →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1: Blueprint -->
+  <div class="step-panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">Шалгалтын Blueprint</div>
+      <table class="bp-table">
+        <thead><tr><th style="width:40px">№</th><th>Дугаарлалт</th><th style="width:90px">Оноо</th><th>Хүндрэл</th><th>Таксаноми</th></tr></thead>
+        <tbody id="bpBody"></tbody>
+      </table>
+      <div class="total-bar"><span>Нийт оноо</span><span id="totalScore">0</span></div>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goPanel(0)">← Буцах</button>
+        <button class="btn btn-primary" onclick="generateExcel()">Excel татах →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Excel ready -->
+  <div class="step-panel" id="panel-2">
+    <div class="card">
+      <div class="card-title">Excel хүснэгт бэлэн боллоо</div>
+      <div class="info-box">
+        Хүснэгт таны компьютерт татагдлаа.<br>
+        ① Хүснэгтийг нээж сурагчдын нэрийг оруулна<br>
+        ② Шалгалтын оноог бөглөнө<br>
+        ③ Файлаа хадгалаад буцааж upload хийнэ
+      </div>
+      <button class="btn btn-secondary" onclick="redownloadExcel()">↓ Дахин татах</button>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goPanel(1)">← Буцах</button>
+        <button class="btn btn-primary" onclick="goPanel(3)">Дүн оруулах →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Upload -->
+  <div class="step-panel" id="panel-3">
+    <div class="card">
+      <div class="card-title">Бөглөсөн хүснэгт оруулах</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Excel файлаа энд чирж оруулах эсвэл дарж сонгох</p>
+        <p class="file-name" id="fileName"></p>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(this)">
+      <div id="chartArea"></div>
+      <div class="field" style="margin-top:20px">
+        <label>Google Gemini API Key</label>
+        <input type="password" id="apiKey" placeholder="AIzaSyCBGnsETaCChkSkT8WFlHGDaKMQTI9oUM0" style="font-family:monospace;font-size:.8rem">
+        <p class="hint">🔑 Google Gemini API key-г <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>-с авна уу. Загвар: <strong>gemini-3.1-pro-preview</strong> — 1M input $2, output $12 per 1M token. Таны key энд хадгалагдахгүй.</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goPanel(2)">← Буцах</button>
+        <button class="btn btn-primary" id="analyzeBtn" onclick="doAnalysis()" disabled>AI Анализ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Analysis -->
+  <div class="step-panel" id="panel-4">
+    <div class="card">
+      <div class="card-title">AI Анализ</div>
+      <div id="analysisLoading" class="analysis-loading" style="display:none">
+        <div class="spinner"></div>
+        <p style="color:var(--muted);font-size:.875rem">Анализ боловсруулж байна...</p>
+      </div>
+      <div id="analysisError" class="error-msg" style="display:none"></div>
+      <div id="analysisResult"></div>
+      <div id="pdfBar" class="pdf-ready" style="display:none">
+        <div><p>Анализ бэлэн боллоо</p><small>Хуудсыг хэвлэж PDF хэлбэрт хадгалах боломжтой</small></div>
+        <button class="btn btn-primary" onclick="window.print()">🖨 Хэвлэх / PDF</button>
+      </div>
+      <div class="actions" style="margin-top:20px">
+        <button class="btn btn-secondary" onclick="goPanel(3)">← Буцах</button>
+        <button class="btn btn-primary" id="retryBtn" style="display:none" onclick="doAnalysis()">Дахин оролдох</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const BLOOM = ["Мэдлэг","Ойлголт","Хэрэглээ","Шинжилгээ","Нийлэгжилт","Үнэлгээ"];
+const KENDALL = ["Мэдээлэл авах","Ойлгох","Шинжлэх","Мэдлэгийн ашиглалт","Метапознание","Өөрийгөө удирдах"];
+const DIFFICULTY = ["Хөнгөн","Дундаж","Хүнд"];
+const STEPS = ["Мэдээлэл","Blueprint","Excel","Upload","Анализ"];
+
+let currentStep = 0;
+let tasks = [];
+let students = [];
+let studentData = [];
+let uploadedFile = null;
+
+// ── Stepper ────────────────────────────────────────────────────────────────
+function renderStepper() {
+  const el = document.getElementById('stepper');
+  el.innerHTML = STEPS.map((s, i) => `
+    <div class="step-item">
+      <div class="step-dot ${i < currentStep ? 'done' : i === currentStep ? 'active' : ''}">${i < currentStep ? '✓' : i+1}</div>
+      <span class="step-label ${i === currentStep ? 'active' : ''}">${s}</span>
+      ${i < STEPS.length-1 ? '<div class="step-line"></div>' : ''}
+    </div>`).join('');
+}
+
+function goPanel(n) {
+  document.getElementById('panel-'+currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('panel-'+currentStep).classList.add('active');
+  renderStepper();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+renderStepper();
+
+// ── Step 0 → 1 ─────────────────────────────────────────────────────────────
+function getTaxLevels() {
+  return document.querySelector('input[name="taxonomy"]:checked').value === "Bloom's" ? BLOOM : KENDALL;
+}
+
+function goStep1() {
+  const school = document.getElementById('schoolName').value.trim();
+  const grade = document.getElementById('grade').value.trim();
+  const sc = parseInt(document.getElementById('studentCount').value) || 0;
+  const tc = parseInt(document.getElementById('taskCount').value) || 0;
+  if (!school || !grade || sc < 1 || tc < 1) { alert('Бүх талбарыг бөглөнө үү'); return; }
+
+  const levels = getTaxLevels();
+  tasks = Array.from({length: tc}, (_, i) => ({num: i+1, label: String(i+1), score: '', difficulty: 'Дундаж', level: levels[0]}));
+  students = Array.from({length: sc}, (_, i) => `Сурагч ${i+1}`);
+
+  renderBlueprint();
+  goPanel(1);
+}
+
+// ── Step 1: Blueprint ───────────────────────────────────────────────────────
+function renderBlueprint() {
+  const levels = getTaxLevels();
+  const tbody = document.getElementById('bpBody');
+  tbody.innerHTML = tasks.map((t, i) => `
+    <tr>
+      <td><span class="num-badge">${t.num}</span></td>
+      <td><input value="${t.label}" oninput="tasks[${i}].label=this.value"></td>
+      <td><input type="number" min="0" value="${t.score}" oninput="tasks[${i}].score=this.value;updateTotal()"></td>
+      <td><select onchange="tasks[${i}].difficulty=this.value">${DIFFICULTY.map(d=>`<option ${d===t.difficulty?'selected':''}>${d}</option>`).join('')}</select></td>
+      <td><select onchange="tasks[${i}].level=this.value">${levels.map(l=>`<option ${l===t.level?'selected':''}>${l}</option>`).join('')}</select></td>
+    </tr>`).join('');
+  updateTotal();
+}
+
+function updateTotal() {
+  const tot = tasks.reduce((s,t) => s + (parseFloat(t.score)||0), 0);
+  document.getElementById('totalScore').textContent = tot;
+}
+
+// ── Step 1 → 2: Excel ──────────────────────────────────────────────────────
+function buildExcelData() {
+  const school = document.getElementById('schoolName').value;
+  const grade = document.getElementById('grade').value;
+  const headers = ["№","Сурагчийн нэр",...tasks.map(t=>t.label||String(t.num)),"Нийт авах оноо","Нийт авсан оноо"];
+  const total = tasks.reduce((s,t)=>s+(parseFloat(t.score)||0),0);
+  const maxRow = ["",'Нийт авах оноо',...tasks.map(t=>parseFloat(t.score)||0),total,""];
+  const dataRows = students.map((name,i)=>[i+1,name,...tasks.map(()=>""),total,""]);
+  const sumRow = ["","Нийт авсан оноо (нийлбэр)",...tasks.map((_,j)=>{
+    const col = XLSX.utils.encode_col(j+2);
+    return {f:`SUM(${col}3:${col}${dataRows.length+2})`};
+  }),"",{f:`SUM(${XLSX.utils.encode_col(tasks.length+2)}3:${XLSX.utils.encode_col(tasks.length+2)}${dataRows.length+2})`}];
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, maxRow, ...dataRows, sumRow]);
+  ws['!cols'] = [{wch:4},{wch:22},...tasks.map(()=>({wch:8})),{wch:14},{wch:14}];
+  ws['!pageSetup'] = {paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
+  ws['!margins'] = {top:1.18,bottom:0.59,left:0.79,right:0.79,header:0.3,footer:0.3};
+  const footerStart = dataRows.length + 3;
+  XLSX.utils.sheet_add_aoa(ws,[["Боловсруулсан:"],["Хянасан:"]],{origin:{r:footerStart,c:0}});
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Дүнгийн хүснэгт");
+  return {wb, filename:`${school}_${grade}_шалгалт.xlsx`};
+}
+
+function generateExcel() {
+  const valid = tasks.every(t => parseFloat(t.score) > 0);
+  if (!valid) { alert('Даалгавар бүрийн оноог оруулна уу'); return; }
+  const {wb, filename} = buildExcelData();
+  XLSX.writeFile(wb, filename);
+  goPanel(2);
+}
+
+function redownloadExcel() {
+  const {wb, filename} = buildExcelData();
+  XLSX.writeFile(wb, filename);
+}
+
+// ── Step 3: Upload ──────────────────────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  handleFile(e.dataTransfer.files[0]);
+}
+function handleFileInput(inp) { handleFile(inp.files[0]); }
+
+function handleFile(file) {
+  if (!file) return;
+  uploadedFile = file;
+  document.getElementById('fileName').textContent = '✓ ' + file.name;
+  checkAnalyzeBtn();
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+      const dataRows = rows.slice(2, rows.length - 1);
+      studentData = dataRows.map(r => ({
+        name: r[1] || '',
+        scores: tasks.map((_,j) => parseFloat(r[j+2]) || 0)
+      }));
+      renderChart();
+    } catch(err) { studentData = []; }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function checkAnalyzeBtn() {
+  const key = document.getElementById('apiKey').value.trim();
+  document.getElementById('analyzeBtn').disabled = !uploadedFile || !key;
+}
+document.getElementById('apiKey').addEventListener('input', checkAnalyzeBtn);
+
+function renderChart() {
+  if (!studentData.length) return;
+  const total = tasks.reduce((s,t)=>s+(parseFloat(t.score)||0),0);
+  const buckets = [0,0,0,0,0];
+  const labels = ["0–20%","21–40%","41–60%","61–80%","81–100%"];
+  studentData.forEach(s => {
+    const pct = total ? (s.scores.reduce((a,b)=>a+b,0)/total)*100 : 0;
+    buckets[Math.min(Math.floor(pct/20),4)]++;
+  });
+  const maxB = Math.max(...buckets, 1);
+  document.getElementById('chartArea').innerHTML = `
+    <div style="margin-top:20px;padding:16px 20px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:500">Оноо тархалт</div>
+      ${labels.map((l,i)=>`
+        <div class="chart-bar-wrap">
+          <div class="chart-bar-label"><span>${l}</span><span>${buckets[i]} сурагч</span></div>
+          <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${(buckets[i]/maxB)*100}%"></div></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Step 4: Analysis ────────────────────────────────────────────────────────
+async function doAnalysis() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('API key оруулна уу'); return; }
+
+  goPanel(4);
+  document.getElementById('analysisLoading').style.display = 'block';
+  document.getElementById('analysisError').style.display = 'none';
+  document.getElementById('analysisResult').innerHTML = '';
+  document.getElementById('pdfBar').style.display = 'none';
+  document.getElementById('retryBtn').style.display = 'none';
+
+  const school = document.getElementById('schoolName').value;
+  const grade = document.getElementById('grade').value;
+  const taxonomy = document.querySelector('input[name="taxonomy"]:checked').value;
+  const total = tasks.reduce((s,t)=>s+(parseFloat(t.score)||0),0);
+
+  const data = studentData.length ? studentData : students.map(name=>({name, scores:tasks.map(()=>0)}));
+
+  const prompt = `Та шалгалтын дүнгийн анализ хийж байна. Монгол хэлээр дэлгэрэнгүй хариулна уу.
+
+Мэдээлэл:
+- Сургууль: ${school}
+- Анги: ${grade}
+- Таксаноми: ${taxonomy}
+- Нийт оноо: ${total}
+
+Даалгаврын Blueprint:
+${tasks.map(t=>`  ${t.label}: оноо=${t.score}, хүндрэл=${t.difficulty}, таксаноми=${t.level}`).join('\n')}
+
+Сурагчдын дүн:
+${data.map(s=>`  ${s.name}: ${s.scores.join(', ')} (нийт: ${s.scores.reduce((a,b)=>a+b,0)})`).join('\n')}
+
+Дараах анализуудыг гүйцэтгэнэ үү:
+
+### 1. ЕРӨНХИЙ ДҮГНЭЛТ (Progress Analysis)
+Ангийн ерөнхий гүйцэтгэл, дундаж оноо, хамгийн өндөр/доод оноо, өнгөрөлтийн хувь.
+
+### 2. ТАРХАЛТЫН ШИНЖИЛГЭЭ (Distribution Analysis)
+Оноо тархалтын хэв маяг (A,B,C,D,F зэрэглэл).
+
+### 3. ЦООРХОЙН ШИНЖИЛГЭЭ (Gap Analysis)
+Хамгийн сайн/муу сурагчдын ялгаа, онцгой анхаарал шаардсан сурагчид.
+
+### 4. СЭДВИЙН ШИНЖИЛГЭЭ (Topic-level Analysis)
+Даалгавар бүрийн гүйцэтгэл, хамгийн хэцүү/хялбар даалгаврууд.
+
+### 5. УХААНЫ ШИНЖИЛГЭЭ (Skill-based Analysis)
+Таксаномийн түвшингүүдэд харгалзах гүйцэтгэл.
+
+### 6. АЛДААНЫ ШИНЖИЛГЭЭ (Error Analysis)
+Нийтлэг алдааны хэв маяг.
+
+### 7. БАГШИД ЗӨВЛӨГӨӨ
+Конкрет 5-7 зөвлөмж.`;
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{parts:[{text: prompt}]}],
+        generationConfig: {maxOutputTokens: 4000}
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err?.error?.message || 'HTTP '+res.status);
+    }
+    const json = await res.json();
+    const text = json.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n') || 'Хариу ирсэнгүй.';
+    renderAnalysis(text);
+  } catch(e) {
+    document.getElementById('analysisError').textContent = 'Алдаа: ' + e.message;
+    document.getElementById('analysisError').style.display = 'block';
+    document.getElementById('retryBtn').style.display = 'inline-flex';
+  }
+  document.getElementById('analysisLoading').style.display = 'none';
+}
+
+function renderAnalysis(text) {
+  const sections = text.split(/###\s+/).filter(Boolean);
+  const html = sections.map(sec => {
+    const lines = sec.split('\n');
+    const title = lines[0].trim();
+    const body = lines.slice(1).join('\n').trim();
+    return `<div class="analysis-section"><h3>${title}</h3><div class="analysis-content">${body}</div></div>`;
+  }).join('');
+  document.getElementById('analysisResult').innerHTML = html;
+  document.getElementById('pdfBar').style.display = 'flex';
+}
+</script>
+</body>
+</html>

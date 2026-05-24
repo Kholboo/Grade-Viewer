@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Шалгалтын Анализийн Систем</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #f7f6f3;
+      --surface: #fff;
+      --border: #e4e2dc;
+      --text: #1a1917;
+      --muted: #8a8880;
+      --accent: #2d5a3d;
+      --accent-light: #e8f0ea;
+      --danger: #c0392b;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 4px 16px rgba(0, 0, 0, .04);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh
+    }
+
+    .app {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px 20px 80px
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      letter-spacing: -.5px
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: .875rem;
+      margin-top: 6px;
+      font-weight: 300
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 4px
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--step-idle, #c8c6c0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--step-idle, #c8c6c0);
+      background: var(--bg);
+      transition: all .3s;
+      flex-shrink: 0
+    }
+
+    .step-dot.done {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff
+    }
+
+    .step-dot.active {
+      border-color: var(--text);
+      color: var(--text)
+    }
+
+    .step-label {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-left: 6px;
+      white-space: nowrap
+    }
+
+    .step-label.active {
+      color: var(--text);
+      font-weight: 500
+    }
+
+    .step-line {
+      width: 28px;
+      height: 1px;
+      background: var(--border);
+      margin: 0 4px
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow)
+    }
+
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      margin-bottom: 24px
+    }
+
+    .field {
+      margin-bottom: 18px
+    }
+
+    .field label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent)
+    }
+
+    .field input[type=number] {
+      -moz-appearance: textfield
+    }
+
+    .field input[type=number]::-webkit-outer-spin-button,
+    .field input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 24px
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: .875rem
+    }
+
+    .checkbox-item input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer
+    }
+
+    .bp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem
+    }
+
+    .bp-table th {
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      font-size: .7rem;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .bp-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle
+    }
+
+    .bp-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .bp-table input,
+    .bp-table select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .8rem;
+      background: var(--bg);
+      color: var(--text);
+      outline: none
+    }
+
+    .bp-table input:focus,
+    .bp-table select:focus {
+      border-color: var(--accent)
+    }
+
+    .num-badge {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: .7rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 22px
+    }
+
+    .total-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--accent-light);
+      border: 1px solid #c5dcc9;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      font-size: .82rem
+    }
+
+    .total-bar span {
+      font-weight: 600;
+      color: var(--accent)
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .2s
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .btn-primary:hover {
+      background: #245033
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border)
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 28px;
+      gap: 12px
+    }
+
+    .actions-end {
+      justify-content: flex-end
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--bg)
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag {
+      border-color: var(--accent);
+      background: var(--accent-light)
+    }
+
+    .upload-zone svg {
+      color: var(--muted);
+      margin-bottom: 12px
+    }
+
+    .upload-zone p {
+      color: var(--muted);
+      font-size: .875rem
+    }
+
+    .file-name {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: .9rem;
+      margin-top: 8px
+    }
+
+    .analysis-loading {
+      text-align: center;
+      padding: 48px
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .analysis-section {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .analysis-section:last-child {
+      border-bottom: none
+    }
+
+    .analysis-section h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: var(--accent)
+    }
+
+    .analysis-content {
+      font-size: .875rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .metric-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .metric-title {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .compact-chart {
+      display: grid;
+      gap: 10px;
+    }
+
+    .compact-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 70px;
+      align-items: center;
+      gap: 12px;
+      font-size: .82rem;
+    }
+
+    .compact-label {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .compact-track {
+      height: 10px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .compact-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+
+    .compact-value {
+      text-align: right;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem;
+    }
+
+    .data-table th {
+      background: var(--bg);
+      color: var(--muted);
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: .72rem;
+      text-transform: uppercase;
+    }
+
+    .data-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-good {
+      color: #1f7a45;
+      font-weight: 600
+    }
+
+    .status-mid {
+      color: #b7791f;
+      font-weight: 600
+    }
+
+    .status-risk {
+      color: #c0392b;
+      font-weight: 600
+    }
+
+    .pdf-ready {
+      margin-top: 28px;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid #d8e7dc;
+      background: linear-gradient(135deg, #f3faf5, #ffffff);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      box-shadow: 0 8px 24px rgba(45, 90, 61, .08);
+    }
+
+    .report-status {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .report-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+
+    .report-status p {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .report-status small {
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .report-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #f7fbf8;
+    }
+
+    @media(max-width:700px) {
+      .pdf-ready {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .report-actions {
+        width: 100%;
+      }
+
+      .report-actions .btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: .82rem;
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #fdf0ef;
+      border: 1px solid #f5c6c2;
+      border-radius: 6px
+    }
+
+    .hint {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 6px
+    }
+
+    .hint a {
+      color: var(--accent)
+    }
+
+    .chart-bar-wrap {
+      margin: 10px 0
+    }
+
+    .chart-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 4px
+    }
+
+    .chart-bar-bg {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px
+    }
+
+    .chart-bar-fill {
+      height: 8px;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width .6s ease
+    }
+
+    .pie-wrap {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+
+    .pie-chart {
+      width: 160px;
+      height: 160px;
+      min-width: 160px;
+      min-height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(#2d5a3d 0% var(--pass),
+          #c0392b var(--pass) 100%);
+    }
+
+    .pie-legend {
+      font-size: .9rem;
+      line-height: 1.8;
+    }
+
+    .task-danger {
+      background: #fff0f0;
+    }
+
+    .task-good {
+      background: #f1faf4;
+    }
+
+    .info-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.7
+    }
+
+    .step-panel {
+      display: none
+    }
+
+    .step-panel.active {
+      display: block
+    }
+
+    @media print {
+
+      .stepper,
+      .actions,
+      .btn,
+      .upload-zone,
+      .field,
+      .pdf-ready {
+        display: none !important
+      }
+
+      .card {
+        box-shadow: none;
+        border: none;
+        padding: 0
+      }
+
+      .analysis-section {
+        page-break-inside: avoid
+      }
+    }
+
+    .top-students-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .top-student-card {
+      border: 1px solid #f4d27a;
+      background: linear-gradient(135deg, #fff8df, #fff);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .05);
+    }
+
+    .top-student-rank {
+      font-size: .75rem;
+      color: #9c6b00;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .top-student-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2d5a3d;
+      margin-bottom: 6px;
+    }
+
+    .top-student-score {
+      font-size: .9rem;
+      color: #444;
+    }
+
+    .home-btn {
+      position: fixed;
+      /* Дэлгэцийн нэг газарт байнга харагдана */
+      top: 20px;
+      left: 20px;
+      background-color: #ffffff;
+      color: #2c3e50;
+      padding: 12px 20px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      /* Икон болон бичвэр хоорондын зай */
+      z-index: 9999;
+      /* Бусад бүх элементүүдийн дээр харагдуулах */
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid #e0e0e0;
+    }
+
+    /* Хулгана очих үеийн эффект */
+    .home-btn:hover {
+      background-color: #2c3e50;
+      color: #ffffff;
+      transform: scale(1.05);
+      /* Ялимгүй томорно */
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #panel-0 .card>.field:has(input[name="taxonomy"]) {
+      width: 50%;
+      margin-left: auto;
+      margin-top: -110px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>Шалгалтын Анализийн Систем</h1>
+      <p>Сурагчдын гүйцэтгэлийг шинжилж, зөвлөмж боловсруулах</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper" id="stepper"></div>
+    <a href="../Index.html" class="home-btn">
+        <i class="fa-solid fa-house"></i> Нүүр хуудас
+    </a>
+
+    <!-- Step 0: Info -->
+    <div class="step-panel active" id="panel-0">
+      <div class="card">
+        <div class="card-title">Ерөнхий мэдээлэл</div>
+        <div class="grid2">
+          <div class="field"><label>Сургуулийн нэр</label><input id="schoolName" placeholder="Нэр оруулах"></div>
+          <div class="field"><label>Анги</label><input id="grade" placeholder="Жишээ: 10А"></div>
+          <div class="field">
+            <label>Хичээлийн нэр</label>
+            <select id="subjectName">
+              <option value="">Хичээл сонгох</option>
+              <option value="Математик">Математик</option>
+              <option value="Монгол хэл">Монгол хэл</option>
+              <option value="Уран зохиол">Уран зохиол</option>
+              <option value="Англи хэл">Англи хэл</option>
+              <option value="Орос хэл">Орос хэл</option>
+              <option value="Мэдээлэл зүй">Мэдээлэл зүй</option>
+              <option value="Физик">Физик</option>
+              <option value="Хими">Хими</option>
+              <option value="Биологи">Биологи</option>
+              <option value="Газар зүй">Газар зүй</option>
+              <option value="Түүх">Түүх</option>
+              <option value="Нийгэм судлал">Нийгэм судлал</option>
+              <option value="Иргэний ёс зүйн боловсрол">Иргэний ёс зүйн боловсрол</option>
+              <option value="Хүн ба орчин">Хүн ба орчин</option>
+              <option value="Хүн ба нийгэм">Хүн ба нийгэм</option>
+              <option value="Хүн ба байгаль">Хүн ба байгаль</option>
+              <option value="Дүрслэх урлаг">Дүрслэх урлаг</option>
+              <option value="Технологи">Технологи</option>
+              <option value="Хөгжим">Хөгжим</option>
+              <option value="Биеийн тамир">Биеийн тамир</option>
+              <option value="Эрүүл мэнд">Эрүүл мэнд</option>
+            </select>
+            <p class="hint">
+              Хичээл сонгоход дараагийн "Шалгалт" хэсэгт тухайн хичээлийн үнэлгээний шалгуурууд ашиглагдана.
+            </p>
+          </div>
+          <div class="field">
+            <label>Таксаноми</label>
+
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="radio" name="taxonomy" value="Bloom's" checked>
+                Bloom's
+              </label>
+
+              <label class="checkbox-item">
+                <input type="radio" name="taxonomy" value="Kendall & Marzano's">
+                Kendall & Marzano's
+              </label>
+            </div>
+
+            <p class="hint">
+              Сонгосон таксаноми нь даалгаврын түвшин, үнэлгээний шинжилгээнд ашиглагдана.
+            </p>
+          </div>
+
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Сурагчийн тоо</label><input id="studentCount" type="number" min="1" placeholder="0">
+          </div>
+          <div class="field"><label>Даалгаврын тоо</label><input id="taskCount" type="number" min="1" placeholder="0">
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label>Тайлан гаргасан огноо</label>
+              <input id="reportDate" type="date">
+            </div>
+
+            <div class="field">
+              <label>Тайлан гаргасан багшийн нэр</label>
+              <input id="teacherName" placeholder="Жишээ: Б. Болормаа">
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Шалгалтын материал хавсаргах /заавал биш/</label>
+
+          <input id="examMaterialInput" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+            onchange="handleExamMaterial(this)">
+
+          <p class="hint">
+            PDF, Word, зураг, Excel файл оруулж болно. Оруулахгүй байсан ч үргэлжилнэ.
+          </p>
+
+          <p class="file-name" id="examMaterialName"></p>
+        </div>
+        <div class="actions actions-end">
+          <button class="btn btn-primary" onclick="goStep1()">Үргэлжлүүлэх →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Blueprint -->
+    <div class="step-panel" id="panel-1">
+      <div class="card">
+        <div class="card-title">Шалгалтын бүтэц</div>
+        <table class="bp-table">
+          <thead>
+            <tr>
+              <th style="width:40px">№</th>
+              <th>Дугаарлалт</th>
+              <th style="width:90px">Оноо</th>
+              <th>Хүндрэл</th>
+              <th>Таксаноми</th>
+              <th>Үнэлгээний шалгуур</th>
+            </tr>
+          </thead>
+          <tbody id="bpBody"></tbody>
+        </table>
+        <div class="total-bar"><span>Нийт оноо</span><span id="totalScore">0</span></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="goPanel(0)">← Буцах</button>
+          <button class="btn btn-primary" onclick="generateExcel()">Excel татах →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Дүн оруулах -->
+    <div class="step-panel" id="panel-2">
+      <div class="card">
+        <div class="card-title">Дүн оруулах</div>
+
+        <div class="info-box">
+          ① Excel хүснэгтийг таны компьютерт илгээсэн<br>
+          ② Хүснэгтийг нээж сурагчдын нэр, шалгалтын оноог бөглөөд хадгалаарай<br>
+          ③ Хадгалсан Excel файлаа доорх хэсэгт дарж оруулаарай
+        </div>
+
+        <button class="btn btn-secondary" onclick="redownloadExcel()">
+          Excel хүснэгтийг дахин татах
+        </button>
+
+        <div style="margin-top:24px">
+          <div class="card-title" style="font-size:1.05rem;margin-bottom:14px">
+            Хадгалсан Excel хүснэгтийг оруулна уу!
+          </div>
+
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+            ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')"
+            ondrop="handleDrop(event)">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p>Бөглөсөн дүнгийн файлаа энд чирж оруулах эсвэл дарж сонгох</p>
+            <p class="file-name" id="fileName"></p>
+          </div>
+
+          <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(this)">
+
+          <div class="field" style="margin-top:20px">
+            <label>Google Gemini API Key</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input type="password" id="apiKey" placeholder="AIza..." style="flex:1;min-width:220px;font-family:monospace;font-size:.8rem">
+              <button type="button" class="btn btn-secondary" style="padding:10px 16px;height:auto;white-space:nowrap;" onclick="pasteApiKey()">API key байрлуулах</button>
+            </div>
+            <p class="hint">🔑 Тогтмол API key-г автоматаар оруулахын тулд "API key байрлуулах" товчийг дарна уу. Хэрвээ өөр API key ашиглах бол өөр key-г шууд оруулна.</p>
+          </div>
+
+          <div class="field" style="margin-top:16px">
+            <label>AI Prompt / хуулсан prompt</label>
+            <textarea id="customPrompt" placeholder="Энд хуулсан prompt-oo тавиад анализ хийх боломжтой..." style="width:100%;min-height:140px;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:monospace;font-size:.85rem;line-height:1.4"></textarea>
+            <p class="hint">Хэрвээ prompt байвал энэ талбар руу хуулна уу. Хоосон бол систем автоматаар prompt үүсгэн анализ хийнэ.</p>
+          </div>
+
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="goPanel(1)">← Буцах</button>
+          <button class="btn btn-primary" id="analyzeBtn" onclick="doAnalysis()" disabled>
+            Анализ хийх →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Analysis -->
+    <div class="step-panel" id="panel-3">
+      <div class="card">
+        <div class="card-title">AI Анализ</div>
+        <div id="analysisLoading" class="analysis-loading" style="display:none">
+          <div class="spinner"></div>
+          <p style="color:var(--muted);font-size:.875rem">Анализ боловсруулж байна...</p>
+        </div>
+        <div id="analysisError" class="error-msg" style="display:none"></div>
+        <div id="chartArea"></div>
+        <div id="analysisResult"></div>
+        <div id="pdfBar" class="pdf-ready" style="display:none">
+
+          <div class="report-status">
+            <div class="report-icon">✓</div>
+
+            <div>
+              <p>Анализ амжилттай боловсруулагдлаа</p>
+              <small>
+                Тайланг Word, PDF хэлбэрээр хадгалах эсвэл хэвлэх боломжтой
+              </small>
+            </div>
+          </div>
+
+          <div class="report-actions">
+
+            <button class="btn btn-outline" onclick="downloadWordReport()">
+              📝 Word татах
+            </button>
+
+            <button class="btn btn-outline" onclick="downloadPDFReport()">
+              📄 PDF татах
+            </button>
+
+            <button class="btn btn-outline" onclick="generateAIPrompt()">
+              🤖 AI анализ бэлтгэх
+            </button>
+
+            <button class="btn" onclick="window.print()">
+              🖨 Хэвлэх
+            </button>
+
+          </div>
+
+        </div>
+
+        <div id="aiPromptBox" class="analysis-section" style="display:none;margin-top:24px">
+          <h3>AI дэлгэрэнгүй анализын prompt</h3>
+
+          <textarea id="aiPromptText"
+            style="width:100%;height:320px;padding:14px;border:1px solid var(--border);border-radius:10px;font-family:monospace;font-size:.82rem;line-height:1.5"></textarea>
+
+          <div class="actions actions-end" style="margin-top:12px">
+            <button class="btn btn-primary" onclick="copyAIPrompt()">
+              Prompt хуулах
+            </button>
+          </div>
+        </div>
+
+
+
+        <div class="actions" style="margin-top:20px">
+          <button class="btn btn-secondary" onclick="goPanel(2)">← Буцах</button>
+          <button class="btn btn-primary" id="retryBtn" style="display:none" onclick="doAnalysis()">Дахин
+            оролдох</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    const BLOOM = ["Мэдлэг", "Ойлголт", "Хэрэглээ", "Шинжилгээ", "Нийлэгжилт", "Үнэлгээ"];
+    const KENDALL = ["Мэдээлэл авах", "Ойлгох", "Шинжлэх", "Мэдлэгийн ашиглалт", "Метапознание", "Өөрийгөө удирдах"];
+    const DIFFICULTY = ["Хөнгөн", "Дундаж", "Хүнд"];
+    const STEPS = ["Мэдээлэл", "Шалгалт", "Дүн оруулах", "Анализ"];
+    const SUBJECT_CRITERIA = {
+
+      "Математик": {
+        "1": ["Тоолох, харьцуулах", "Нэмэх хасах үйлдэл хийх", "Энгийн бодлого бодох"],
+        "2": ["100 хүртэлх тоотой үйлдэл хийх", "Хэмжигдэхүүн ашиглах", "Энгийн геометрийн дүрс таних"],
+        "3": ["Үржүүлэх хуваах үйлдэл хийх", "Бодлого загварчлах", "Хүснэгт, зураг унших"],
+        "4": ["Олон оронтой тоотой үйлдэл хийх", "Бутархайн тухай ойлгох", "Периметр, талбай олох"],
+        "5": ["Бутархай, аравтын бутархай хэрэглэх", "Харьцаа, хувь ойлгох", "Өгөгдөл боловсруулах"],
+        "6": ["Энгийн бутархайтай үйлдэл хийх", "Харьцаа, пропорц хэрэглэх", "Геометрийн үндсэн дүрс ашиглах"],
+        "7": ["Рационал тоотой үйлдэл хийх", "Шугаман тэгшитгэл бодох", "Өгөгдөл, магадлал тайлбарлах"],
+        "8": ["Квадрат илэрхийлэл хувиргах", "Функцийн утга олох", "Геометрийн баталгаа хийх"],
+        "9": ["Квадрат тэгшитгэл бодох", "Функцийн график байгуулах", "Тригонометрийн суурь ойлголт хэрэглэх"],
+        "10": ["Функц, график шинжлэх", "Тригонометр хэрэглэх", "Магадлал, статистик ашиглах"],
+        "11": ["Дараалал, прогресс хэрэглэх", "Производлогын суурь ойлголт ашиглах", "Нийлмэл бодлого бодох"],
+        "12": ["Интеграл, дифференциалын хэрэглээ", "Математик загварчлал хийх", "Нотолгоо, дүгнэлт гаргах"]
+      },
+
+      "Монгол хэл": {
+        "1": ["Үсэг, авиа таних", "Үг унших, бичих", "Энгийн өгүүлбэр ойлгох"],
+        "2": ["Эх унших, ойлгох", "Зөв бичих дүрэм хэрэглэх", "Энгийн өгүүлбэр зохиох"],
+        "3": ["Эхийн гол санаа олох", "Үгийн утга тайлбарлах", "Богино эх зохион бичих"],
+        "4": ["Эхийн бүтэц таних", "Зөв найруулан бичих", "Дүрмийн мэдлэг хэрэглэх"],
+        "5": ["Эхийн агуулга дүгнэх", "Найруулгын алдаа засах", "Санаагаа бичгээр илэрхийлэх"],
+        "6": ["Эхийн гол санааг тодорхойлох", "Зөв бичих дүрэм хэрэглэх", "Энгийн найруулга бичих"],
+        "7": ["Эхийн бүтэц, холбоосыг тайлбарлах", "Үгийн утга, найруулгын үүргийг тодорхойлох", "Эсээний бүтэц бичих"],
+        "8": ["Эхийн далд утга тайлбарлах", "Найруулгын төрөл ялгах", "Баримттай тайлбар бичих"],
+        "9": ["Эхийн санаа, байр суурь дүгнэх", "Хэлзүйн хэрэглээг шинжлэх", "Эсээ бичих"],
+        "10": ["Уран зохиолын эх шинжлэх", "Хэл найруулгын онцлог тайлбарлах", "Шүүмж, дүгнэлт бичих"],
+        "11": ["Эхийн үзэл санаа, дүр дүрслэл шинжлэх", "Эрдэм шинжилгээний найруулга хэрэглэх", "Нотолгоотой эсээ бичих"],
+        "12": ["Эхийг гүнзгий задлан шинжлэх", "Шүүмжлэлт сэтгэлгээгээр дүгнэх", "Албан болон академик бичвэр боловсруулах"]
+      },
+
+      "Англи хэл": {
+        "5": ["Энгийн үг хэллэг ойлгох", "Өөрийгөө танилцуулах", "Богино өгүүлбэр унших, бичих"],
+        "6": ["Өдөр тутмын яриа ойлгох", "Энгийн асуулт, хариулт хэрэглэх", "Богино эх унших"],
+        "7": ["Сонссон мэдээллийг ойлгох", "Харилцан ярианд оролцох", "Богино бичвэр бичих"],
+        "8": ["Эхийн гол санаа ойлгох", "Өөрийн санааг илэрхийлэх", "Дүрмийн мэдлэг хэрэглэх"],
+        "9": ["Мэдээлэл уншиж ойлгох", "Ярианы нөхцөлд тохируулан харилцах", "Богино эсээ бичих"],
+        "10": ["Эхийн санаа дүгнэх", "Сэдвийн хүрээнд ярилцах", "Бичгийн найруулга хэрэглэх"],
+        "11": ["Нотолгоотой санаа илэрхийлэх", "Академик эх унших", "Илтгэл, эсээ боловсруулах"],
+        "12": ["Эх сурвалж ашиглан дүгнэх", "Мэтгэлцэх, байр сууриа хамгаалах", "Академик бичвэр боловсруулах"]
+      },
+
+      "Физик": {
+        "6": ["Байгалийн үзэгдлийг ажиглах", "Хэмжилт хийх", "Энгийн туршилтын үр дүн тайлбарлах"],
+        "7": ["Физик хэмжигдэхүүн, нэгж хэрэглэх", "Хүч ба хөдөлгөөний суурь ойлголт тайлбарлах", "График, хүснэгт унших"],
+        "8": ["Дулаан, цахилгааны үзэгдэл тайлбарлах", "Томьёо ашиглан бодлого бодох", "Туршилтын үр дүн дүгнэх"],
+        "9": ["Механик хөдөлгөөн шинжлэх", "Цахилгаан хэлхээний тооцоо хийх", "Энерги, ажил, чадал хэрэглэх"],
+        "10": ["Кинематик, динамикийн бодлого бодох", "Хадгалагдах хуулиуд хэрэглэх", "Долгион, гэрлийн үзэгдэл тайлбарлах"],
+        "11": ["Цахилгаан ба соронзон орныг шинжлэх", "Хэлбэлзэл, долгионы тооцоо хийх", "Физик загварчлал хийх"],
+        "12": ["Орчин үеийн физикийн ойлголт тайлбарлах", "Нарийвчилсан тооцоот бодлого бодох", "Туршилт, өгөгдөлд үндэслэн дүгнэлт гаргах"]
+      },
+
+      "Хими": {
+        "6": ["Бодисын шинж чанар ажиглах", "Энгийн туршилт хийх", "Аюулгүй ажиллагаа мөрдөх"],
+        "7": ["Бодис, хольц ялгах", "Атом, молекулын ойлголт тайлбарлах", "Туршилтын үр дүн бичих"],
+        "8": ["Химийн урвал тайлбарлах", "Томьёо, тэмдэглэгээ хэрэглэх", "Бодисын шинж чанар харьцуулах"],
+        "9": ["Урвалын тэгшитгэл бичих", "Хүчил, суурь, давс тайлбарлах", "Тооцоот бодлого бодох"],
+        "10": ["Үелэх хүснэгт ашиглах", "Химийн холбоо тайлбарлах", "Урвалын хурд, тэнцвэр хэрэглэх"],
+        "11": ["Органик бодисын бүтэц шинжлэх", "Стехиометрийн тооцоо хийх", "Туршилтын өгөгдөл боловсруулах"],
+        "12": ["Химийн процесс загварчлах", "Нарийвчилсан тооцоо хийх", "Байгаль, үйлдвэрлэлтэй холбон дүгнэх"]
+      },
+
+      "Биологи": {
+        "6": ["Амьд биеийн үндсэн шинж тайлбарлах", "Ажиглалт хийх", "Энгийн зураг, хүснэгт унших"],
+        "7": ["Эсийн бүтэц тайлбарлах", "Ургамал, амьтны онцлог харьцуулах", "Амьдрах орчны нөлөө тайлбарлах"],
+        "8": ["Хүний эрхтэн тогтолцоог тайлбарлах", "Удамшлын суурь ойлголт хэрэглэх", "Экосистемийн холбоо хамаарал тайлбарлах"],
+        "9": ["Бодисын солилцоо, энерги тайлбарлах", "Үржил, хөгжил шинжлэх", "Экологийн асуудал дүгнэх"],
+        "10": ["Эсийн үйл ажиллагаа шинжлэх", "Генетикийн бодлого бодох", "Биологийн туршилт төлөвлөх"],
+        "11": ["Эволюцийн онол тайлбарлах", "Хүний физиологи шинжлэх", "Өгөгдөлд үндэслэн дүгнэлт гаргах"],
+        "12": ["Молекул биологийн ойлголт хэрэглэх", "Экосистемийн өөрчлөлт үнэлэх", "Судалгааны үр дүн тайлбарлах"]
+      }
+      ,
+
+      "Түүх": {
+        "6": ["Түүхэн цаг хугацааг ойлгох", "Эх сурвалж унших", "Үйл явдлыг дарааллаар тайлбарлах"],
+        "7": ["Эртний түүхийн үйл явдлыг тайлбарлах", "Түүхэн газрын зураг ашиглах", "Шалтгаан үр дагавар тодорхойлох"],
+        "8": ["Монголын түүхийн үйл явдлыг шинжлэх", "Эх сурвалж харьцуулах", "Түүхэн хүний үүргийг тайлбарлах"],
+        "9": ["Дэлхийн түүхийн үйл явдлыг тайлбарлах", "Нийгэм, соёлын өөрчлөлт дүгнэх", "Баримтад үндэслэн тайлбарлах"],
+        "10": ["Түүхэн үйл явдлын шалтгаан үр дагаврыг шинжлэх", "Эх сурвалжийн найдвартай байдлыг үнэлэх", "Түүхэн дүгнэлт гаргах"],
+        "11": ["Монгол ба дэлхийн түүхийг харьцуулах", "Түүхэн үйл явцыг тайлбарлах", "Нотолгоотой байр суурь илэрхийлэх"],
+        "12": ["Түүхэн асуудлыг судлах", "Эх сурвалжид тулгуурлан дүгнэх", "Түүхэн үзэгдлийг олон талаас үнэлэх"]
+      },
+
+      "Нийгэм судлал": {
+        "6": ["Нийгмийн харилцааг ойлгох", "Дүрэм журам тайлбарлах", "Өөрийн оролцоог тодорхойлох"],
+        "7": ["Гэр бүл, сургууль, хамт олны харилцааг тайлбарлах", "Эрх үүргээ ойлгох", "Жишээгээр тайлбарлах"],
+        "8": ["Иргэний оролцоог тайлбарлах", "Нийгмийн асуудлыг тодорхойлох", "Баримт мэдээлэл ашиглах"],
+        "9": ["Эдийн засаг, эрх зүйн суурь ойлголт хэрэглэх", "Нийгмийн үзэгдлийг шинжлэх", "Шийдэл санал болгох"],
+        "10": ["Улс төр, эрх зүй, эдийн засгийн ойлголт тайлбарлах", "Нийгмийн асуудлыг олон талаас шинжлэх", "Үндэслэлтэй дүгнэлт гаргах"],
+        "11": ["Иргэний нийгэм, ардчиллын зарчим тайлбарлах", "Нийгмийн мэдээлэлд дүн шинжилгээ хийх", "Байр сууриа нотлох"],
+        "12": ["Нийгмийн бодлого, асуудлыг үнэлэх", "Судалгаа, мэдээлэл ашиглан дүгнэх", "Иргэний хариуцлагатай шийдвэр гаргах"]
+      },
+
+      "Газар зүй": {
+        "6": ["Газрын зураг унших", "Байгаль орчны бүрэлдэхүүнийг таних", "Орон нутгийн онцлог тайлбарлах"],
+        "7": ["Газарзүйн байрлал тодорхойлох", "Уур амьсгал, ус, хөрс тайлбарлах", "Зураг, хүснэгт ашиглах"],
+        "8": ["Монгол орны байгаль, нийгмийн онцлог шинжлэх", "Газрын зураг, диаграмм тайлбарлах", "Хүн байгалийн харилцааг тайлбарлах"],
+        "9": ["Дэлхийн бүс нутгийн онцлог харьцуулах", "Хүн ам, эдийн засгийн үзүүлэлт шинжлэх", "Байгаль орчны асуудал дүгнэх"],
+        "10": ["Газарзүйн мэдээлэл боловсруулах", "Байгаль нийгмийн хамаарлыг шинжлэх", "Орон зайн дүгнэлт гаргах"],
+        "11": ["Дэлхийн хөгжлийн ялгааг тайлбарлах", "Нөөц, үйлдвэрлэл, хүн амын холбоог шинжлэх", "Газарзүйн асуудалд шийдэл санал болгох"],
+        "12": ["Тогтвортой хөгжлийн асуудлыг үнэлэх", "Газарзүйн судалгаа хийх", "Өгөгдөлд үндэслэн дүгнэлт гаргах"]
+      },
+
+      "Мэдээлэл зүй": {
+        "6": ["Компьютерийн үндсэн хэрэглээ", "Файл, хавтас зохион байгуулах", "Аюулгүй хэрэглээний дүрэм мөрдөх"],
+        "7": ["Мэдээлэл боловсруулах", "Текст, хүснэгтэн мэдээлэл үүсгэх", "Интернэтээс мэдээлэл хайх"],
+        "8": ["Алгоритмын дараалал ойлгох", "Энгийн программчлал хийх", "Цахим ёс зүй мөрдөх"],
+        "9": ["Өгөгдөл боловсруулах", "Алгоритм зохиох", "Программчлалын суурь ойлголт хэрэглэх"],
+        "10": ["Программчлалын бүтэц ашиглах", "Вэб болон мультимедиа мэдээлэл боловсруулах", "Мэдээллийн аюулгүй байдлыг тайлбарлах"],
+        "11": ["Өгөгдлийн сангийн суурь ойлголт хэрэглэх", "Программ боловсруулах", "Системийн загварчлал хийх"],
+        "12": ["Мэдээллийн систем төлөвлөх", "Өгөгдөлд дүн шинжилгээ хийх", "Дижитал бүтээгдэхүүн боловсруулах"]
+      },
+
+      "Уран зохиол": {
+        "6": ["Зохиолын үйл явдал ойлгох", "Дүрийн шинжийг тайлбарлах", "Уран дүрслэлийг таних"],
+        "7": ["Зохиолын сэдэв, санаа тодорхойлох", "Дүрийн харилцааг тайлбарлах", "Уншсан зохиолд сэтгэгдэл бичих"],
+        "8": ["Зохиолын бүтэц шинжлэх", "Уран дүрслэлийн үүргийг тайлбарлах", "Дүр, орчныг харьцуулах"],
+        "9": ["Зохиолын үзэл санааг дүгнэх", "Дүрийн хөгжил, зөрчлийг шинжлэх", "Шүүмжлэлт тайлбар бичих"],
+        "10": ["Уран зохиолын төрөл, онцлог шинжлэх", "Зохиолчийн санаа, байр суурь тайлбарлах", "Эсээ, шүүмж бичих"],
+        "11": ["Зохиолыг нийгэм, түүхийн хүрээнд тайлбарлах", "Уран сайхны арга хэрэглүүр шинжлэх", "Нотолгоотой дүгнэлт бичих"],
+        "12": ["Уран зохиолын асуудлыг олон талаас үнэлэх", "Харьцуулсан шинжилгээ хийх", "Судалгааны бичвэр боловсруулах"]
+      }
+      ,
+
+      "Биеийн тамир": {
+        "1": ["Үндсэн хөдөлгөөн гүйцэтгэх", "Тоглоомын дүрэм ойлгох", "Аюулгүй байдлыг мөрдөх"],
+        "2": ["Гүйх, харайх, шидэх хөдөлгөөн хийх", "Багаар хамтран тоглох", "Дасгалын дараалал дагах"],
+        "3": ["Хөдөлгөөний эвсэл сайжруулах", "Спортын энгийн дүрэм хэрэглэх", "Эрүүл ахуйн дадал мөрдөх"],
+        "4": ["Хүч, хурд, уян хатан чанараа хөгжүүлэх", "Багаар хамтран ажиллах", "Өөрийн хөдөлгөөнийг хянах"],
+        "5": ["Спорт тоглоомын үндсэн техник хэрэглэх", "Дасгалын ачааллыг тохируулах", "Шударга өрсөлдөх"],
+        "6": ["Хөнгөн атлетикийн үндсэн техник хийх", "Спорт тоглоомын дүрэм хэрэглэх", "Бие бялдрын үзүүлэлтээ үнэлэх"],
+        "7": ["Багаар тоглох ур чадвар хэрэглэх", "Дасгал хөдөлгөөний ач холбогдлыг тайлбарлах", "Аюулгүй дасгаллах"],
+        "8": ["Спортын техник, тактик хэрэглэх", "Бие бялдрын чанараа хөгжүүлэх", "Өөрийн амжилтыг ахиулах"],
+        "9": ["Тэмцээний дүрэм мөрдөх", "Дасгалын төлөвлөгөө боловсруулах", "Эрүүл амьдралын хэв маяг хэрэгжүүлэх"],
+        "10": ["Сонгосон спортын техник сайжруулах", "Бие бялдрын хөгжлөө үнэлэх", "Багаар манлайлан оролцох"],
+        "11": ["Дасгал хөдөлгөөний хөтөлбөр төлөвлөх", "Спортын тактик шинжлэх", "Эрүүл мэндээ дэмжих дадал хэвшүүлэх"],
+        "12": ["Бие бялдрын хөгжлийн төлөвлөгөө хэрэгжүүлэх", "Спортын гүйцэтгэлээ үнэлэх", "Идэвхтэй амьдралын хэв маяг төлөвшүүлэх"]
+      },
+
+      "Эрүүл мэнд": {
+        "1": ["Хувийн ариун цэврийг сахих", "Эрүүл хооллолтын энгийн ойлголт", "Аюулгүй байдлыг таних"],
+        "2": ["Өдөр тутмын эрүүл дадал хэрэгжүүлэх", "Биеийн өөрчлөлтийг ажиглах", "Аюултай нөхцөлөөс сэргийлэх"],
+        "3": ["Эрүүл хооллолт тайлбарлах", "Хөдөлгөөний ач холбогдлыг ойлгох", "Сэтгэл хөдлөлөө таних"],
+        "4": ["Хувийн эрүүл ахуйг мөрдөх", "Гэмтэл ослоос сэргийлэх", "Зөв харилцаа хэрэглэх"],
+        "5": ["Эрүүл амьдралын дадал төлөвшүүлэх", "Эрсдэлтэй зан үйлээс зайлсхийх", "Өөрийгөө хамгаалах арга мэдэх"],
+        "6": ["Өсөлт хөгжил, биеийн өөрчлөлтийг тайлбарлах", "Эрүүл хооллолт, хөдөлгөөнийг төлөвлөх", "Сэтгэл хөдлөлөө зохицуулах"],
+        "7": ["Хувийн аюулгүй байдлыг хангах", "Эерэг харилцаа тогтоох", "Эрүүл сонголт хийх"],
+        "8": ["Сэтгэцийн эрүүл мэндийг дэмжих", "Эрсдэлтэй нөхцөлд шийдвэр гаргах", "Нөхөн үржихүйн эрүүл мэндийн суурь ойлголт"],
+        "9": ["Донтолт, хорт зуршлаас сэргийлэх", "Хариуцлагатай харилцаа төлөвшүүлэх", "Эрүүл мэндийн мэдээлэл үнэлэх"],
+        "10": ["Эрүүл амьдралын хэв маяг төлөвлөх", "Нийгмийн эрүүл мэндийн асуудал тайлбарлах", "Стрессээ зохицуулах"],
+        "11": ["Эрүүл мэндийн эрсдэлийг үнэлэх", "Урьдчилан сэргийлэх арга төлөвлөх", "Эрүүл мэндийн зөв шийдвэр гаргах"],
+        "12": ["Амьдралын чанарт нөлөөлөх хүчин зүйлсийг шинжлэх", "Эрүүл мэндийн мэдээлэлд үндэслэн дүгнэх", "Өөрийн эрүүл мэндийн төлөвлөгөө боловсруулах"]
+      },
+
+      "Хөгжим": {
+        "1": ["Дуу сонсож мэдрэх", "Энгийн хэмнэл дагах", "Дуу дуулж оролцох"],
+        "2": ["Хэмнэл, аялгуу ялгах", "Багаар дуулах", "Хөгжмийн сэтгэгдлээ илэрхийлэх"],
+        "3": ["Дууны өнгө, хэмнэл таних", "Энгийн хөгжмийн тэмдэглэгээ ойлгох", "Бүтээлчээр оролцох"],
+        "4": ["Хөгжмийн бүтээлийг сонсож тайлбарлах", "Дуулах чадвараа хөгжүүлэх", "Хэмнэл зохиох"],
+        "5": ["Хөгжмийн төрөл, онцлог ялгах", "Дууг илэрхийлэлтэй дуулах", "Энгийн бүтээл зохиох"],
+        "6": ["Хөгжмийн хэллэг, хэмнэлийг тайлбарлах", "Дуу, аялгуу гүйцэтгэх", "Сонссон бүтээлд үнэлгээ өгөх"],
+        "7": ["Хөгжмийн төрөл жанр ялгах", "Багаар хөгжмийн бүтээл гүйцэтгэх", "Хөгжмийн санаагаа илэрхийлэх"],
+        "8": ["Хөгжмийн бүтцэд дүн шинжилгээ хийх", "Гүйцэтгэлийн чадвараа сайжруулах", "Соёлын онцлогтой холбон тайлбарлах"],
+        "9": ["Хөгжмийн бүтээлийг шүүмжлэлтэй сонсох", "Уран бүтээлийн санаа тайлбарлах", "Бүтээлч гүйцэтгэл хийх"],
+        "10": ["Хөгжмийн урсгал, хэв маяг шинжлэх", "Гүйцэтгэлээ үнэлэх", "Хөгжмийн төсөл боловсруулах"],
+        "11": ["Хөгжмийн бүтээлийг соёл, түүхтэй холбон тайлбарлах", "Бүтээлч санаа хөгжүүлэх", "Уран сайхны үнэлгээ хийх"],
+        "12": ["Хөгжмийн судалгаа хийх", "Бүтээл, гүйцэтгэлд дүгнэлт гаргах", "Соёлын өв, орчин үеийн хөгжмийг харьцуулах"]
+      },
+
+      "Дүрслэх урлаг": {
+        "1": ["Өнгө, хэлбэр ялгах", "Энгийн зураг зурах", "Бүтээлээ тайлбарлах"],
+        "2": ["Шугам, дүрс ашиглах", "Өнгө хослуулах", "Гарын ур чадвараа хөгжүүлэх"],
+        "3": ["Дүрс, орон зай илэрхийлэх", "Материал ашиглан бүтээл хийх", "Бүтээлээ танилцуулах"],
+        "4": ["Зохиомжийн энгийн ойлголт хэрэглэх", "Уран дүрслэл хийх", "Өөрийн санааг бүтээлээр илэрхийлэх"],
+        "5": ["Өнгө, гэрэл сүүдэр ашиглах", "Зохиомж бүтээх", "Бүтээлд үнэлгээ өгөх"],
+        "6": ["Дүрслэх урлагийн арга хэрэглүүр ашиглах", "Зохиомжийн зарчим хэрэглэх", "Бүтээлээ тайлбарлах"],
+        "7": ["Орон зай, хөдөлгөөн илэрхийлэх", "Материал, техник сонгох", "Уран сайхны санаа хөгжүүлэх"],
+        "8": ["Дүрслэлийн арга барил шинжлэх", "Бүтээлч шийдэл гаргах", "Урлагийн бүтээлийг тайлбарлах"],
+        "9": ["Урлагийн бүтээлд дүн шинжилгээ хийх", "Өөрийн хэв маяг илэрхийлэх", "Бүтээлээ үнэлэх"],
+        "10": ["Дүрслэх урлагийн урсгал, хэв маяг шинжлэх", "Бүтээлч төсөл боловсруулах", "Уран сайхны шийдэл гаргах"],
+        "11": ["Урлагийн бүтээлийг соёл, түүхтэй холбон тайлбарлах", "Судалгаанд үндэслэн бүтээл хийх", "Шүүмжлэлт үнэлгээ хийх"],
+        "12": ["Уран бүтээлийн төсөл хэрэгжүүлэх", "Бүтээлээ олон талаас үнэлэх", "Урлагийн судалгаа боловсруулах"]
+      },
+
+      "Технологи": {
+        "1": ["Энгийн материал таних", "Гарын жижиг бүтээл хийх", "Аюулгүй ажиллах"],
+        "2": ["Материал сонгох", "Энгийн багаж хэрэглэх", "Бүтээлээ дуусгах"],
+        "3": ["Загвар гаргах", "Материал боловсруулах", "Ажлын дараалал мөрдөх"],
+        "4": ["Энгийн бүтээгдэхүүн төлөвлөх", "Багаж хэрэгслийг зөв ашиглах", "Бүтээлээ сайжруулах"],
+        "5": ["Загвар, хэмжээс ашиглах", "Технологийн дараалал мөрдөх", "Бүтээгдэхүүнээ үнэлэх"],
+        "6": ["Материалын шинж чанар тайлбарлах", "Загвар зохион бүтээх", "Аюулгүй ажиллагаа мөрдөх"],
+        "7": ["Технологийн зураг, загвар ашиглах", "Бүтээгдэхүүн хийх дараалал төлөвлөх", "Чанарыг үнэлэх"],
+        "8": ["Зохион бүтээх шийдэл боловсруулах", "Материал, багаж оновчтой сонгох", "Бүтээгдэхүүн сайжруулах"],
+        "9": ["Технологийн асуудал шийдэх", "Төсөл төлөвлөх", "Үр дүнгээ танилцуулах"],
+        "10": ["Инженерчлэлийн суурь шийдэл гаргах", "Технологийн процесс шинжлэх", "Бүтээгдэхүүн хөгжүүлэх"],
+        "11": ["Дизайн, үйлдвэрлэлийн шийдэл боловсруулах", "Төсөл хэрэгжүүлэх", "Чанар, хэрэглээг үнэлэх"],
+        "12": ["Технологийн судалгаа хийх", "Инновацлаг бүтээгдэхүүн төлөвлөх", "Төслийн үр дүнг хамгаалах"]
+      }
+    };
+
+
+    let currentStep = 0;
+    let tasks = [];
+    let students = [];
+    let studentData = [];
+    let uploadedFile = null;
+    let currentTemplateId = '';
+    let examMaterialFile = null;
+    // ── Stepper ────────────────────────────────────────────────────────────────
+    function renderStepper() {
+      const el = document.getElementById('stepper');
+      el.innerHTML = STEPS.map((s, i) => `
+    <div class="step-item">
+      <div class="step-dot ${i < currentStep ? 'done' : i === currentStep ? 'active' : ''}">${i < currentStep ? '✓' : i + 1}</div>
+      <span class="step-label ${i === currentStep ? 'active' : ''}">${s}</span>
+      ${i < STEPS.length - 1 ? '<div class="step-line"></div>' : ''}
+    </div>`).join('');
+    }
+
+    function goPanel(n) {
+      document.getElementById('panel-' + currentStep).classList.remove('active');
+      currentStep = n;
+      document.getElementById('panel-' + currentStep).classList.add('active');
+      renderStepper();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    renderStepper();
+
+    // ── Step 0 → 1 ─────────────────────────────────────────────────────────────
+    function getTaxLevels() {
+      return document.querySelector('input[name="taxonomy"]:checked').value === "Bloom's" ? BLOOM : KENDALL;
+    }
+
+    function getGradeNumber() {
+      const gradeText = document.getElementById('grade').value.trim();
+      const match = gradeText.match(/\d+/);
+      return match ? match[0] : '';
+    }
+
+    function getSelectedSubjectCriteria() {
+      const subject = document.getElementById('subjectName').value;
+      const gradeNumber = getGradeNumber();
+
+      if (!subject || !gradeNumber) return [];
+
+      return SUBJECT_CRITERIA[subject]?.[gradeNumber] || [];
+    }
+
+    function isSubjectAvailableForGrade() {
+      const subject = document.getElementById('subjectName').value;
+      const gradeNumber = getGradeNumber();
+
+      if (!subject || !gradeNumber) return false;
+
+      return !!SUBJECT_CRITERIA[subject]?.[gradeNumber];
+    }
+
+    function handleExamMaterial(input) {
+      const file = input.files[0];
+
+      if (!file) {
+        examMaterialFile = null;
+        document.getElementById('examMaterialName').textContent = '';
+        return;
+      }
+
+      examMaterialFile = file;
+      document.getElementById('examMaterialName').textContent =
+        '✓ Хавсаргасан файл: ' + file.name;
+    }
+
+    function goStep1() {
+      const school = document.getElementById('schoolName').value.trim();
+      const grade = document.getElementById('grade').value.trim();
+      const subject = document.getElementById('subjectName').value;
+      const gradeNumber = getGradeNumber();
+
+      if (!isSubjectAvailableForGrade()) {
+        alert(`${subject} хичээл ${gradeNumber}-р ангид бүртгэлтэй шалгуургүй байна. Өөр анги эсвэл өөр хичээл сонгоно уу.`);
+        return;
+      }
+      const sc = parseInt(document.getElementById('studentCount').value) || 0;
+      const tc = parseInt(document.getElementById('taskCount').value) || 0;
+      if (!school || !grade || !subject || sc < 1 || tc < 1) {
+        alert('Сургууль, анги, хичээл, сурагчийн тоо, даалгаврын тоог бөглөнө үү');
+        return;
+      }
+
+      const levels = getTaxLevels();
+      const criteria = getSelectedSubjectCriteria();
+
+      tasks = Array.from({ length: tc }, (_, i) => ({
+        num: i + 1,
+        label: String(i + 1),
+        score: '',
+        difficulty: 'Дундаж',
+        level: levels[0],
+        criterion: criteria[0] || ''
+      }));
+      students = Array.from({ length: sc }, (_, i) => `Сурагч ${i + 1}`);
+
+      renderBlueprint();
+      goPanel(1);
+    }
+
+    // ── Step 1: Blueprint ───────────────────────────────────────────────────────
+    function renderBlueprint() {
+      const levels = getTaxLevels();
+      const subject = document.getElementById('subjectName').value;
+      const criteria = getSelectedSubjectCriteria();
+      const tbody = document.getElementById('bpBody');
+      tbody.innerHTML = tasks.map((t, i) => `
+    <tr>
+      <td><span class="num-badge">${t.num}</span></td>
+      <td><input value="${t.label}" oninput="tasks[${i}].label=this.value"></td>
+      <td><input type="number" min="0" value="${t.score}" oninput="tasks[${i}].score=this.value;updateTotal()"></td>
+      <td><select onchange="tasks[${i}].difficulty=this.value">${DIFFICULTY.map(d => `<option ${d === t.difficulty ? 'selected' : ''}>${d}</option>`).join('')}</select></td>
+      <td><select onchange="tasks[${i}].level=this.value">${levels.map(l => `<option ${l === t.level ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+      <td>
+       <select onchange="tasks[${i}].criterion=this.value">
+       ${criteria.map(c => `<option ${c === t.criterion ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`).join('');
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const tot = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
+      document.getElementById('totalScore').textContent = tot;
+    }
+
+    // ── Step 1 → 2: Excel ──────────────────────────────────────────────────────
+    function createTemplateId() {
+      return 'TPL-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function showUploadError(message) {
+      uploadedFile = null;
+      studentData = [];
+      document.getElementById('fileName').textContent = '';
+      document.getElementById('analyzeBtn').disabled = true;
+
+      alert(message);
+    }
+    function buildExcelData() {
+      const school = document.getElementById('schoolName').value;
+      const grade = document.getElementById('grade').value;
+      const subject = document.getElementById('subjectName').value;
+      const headers = ["№", "Сурагчийн нэр", ...tasks.map(t => t.label || String(t.num)), "Нийт авах оноо", "Нийт авсан оноо"];
+      const total = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
+      const maxRow = ["", 'Нийт авах оноо', ...tasks.map(t => parseFloat(t.score) || 0), total, ""];
+      const dataRows = students.map((name, i) => {
+        const rowNumber = i + 3;
+        const firstScoreCol = XLSX.utils.encode_col(2);
+        const lastScoreCol = XLSX.utils.encode_col(tasks.length + 1);
+
+        return [
+          i + 1,
+          name,
+          ...tasks.map(() => ""),
+          total,
+          {
+            t: 'n',
+            f: `SUM(${firstScoreCol}${rowNumber}:${lastScoreCol}${rowNumber})`
+          }
+        ];
+      });
+      const sumRow = ["", "Нийт авсан оноо (нийлбэр)", ...tasks.map((_, j) => {
+        const col = XLSX.utils.encode_col(j + 2);
+        return { f: `SUM(${col}3:${col}${dataRows.length + 2})` };
+      }), "", { f: `SUM(${XLSX.utils.encode_col(tasks.length + 2)}3:${XLSX.utils.encode_col(tasks.length + 2)}${dataRows.length + 2})` }];
+
+      const ws = XLSX.utils.aoa_to_sheet([headers, maxRow, ...dataRows, sumRow]);
+      ws['!cols'] = [{ wch: 4 }, { wch: 22 }, ...tasks.map(() => ({ wch: 8 })), { wch: 14 }, { wch: 14 }];
+      ws['!freeze'] = {
+        xSplit: 2,
+        ySplit: 2
+      };
+      const range = XLSX.utils.decode_range(ws['!ref']);
+
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+
+          if (!ws[cellRef]) continue;
+
+          ws[cellRef].s = ws[cellRef].s || {};
+
+          // Header мөр
+          if (R === 0) {
+            ws[cellRef].s = {
+              font: { bold: true, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "2D5A3D" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin", color: { rgb: "CCCCCC" } },
+                bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                left: { style: "thin", color: { rgb: "CCCCCC" } },
+                right: { style: "thin", color: { rgb: "CCCCCC" } }
+              }
+            };
+          }
+
+          // Нийт авах оноо мөр
+          else if (R === 1) {
+            ws[cellRef].s = {
+              font: { bold: true },
+              fill: { fgColor: { rgb: "E8F0EA" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin", color: { rgb: "CCCCCC" } },
+                bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                left: { style: "thin", color: { rgb: "CCCCCC" } },
+                right: { style: "thin", color: { rgb: "CCCCCC" } }
+              }
+            };
+          }
+
+          // Сурагчдын бөглөх онооны нүднүүд
+          else if (R >= 2 && R < 2 + students.length && C >= 2 && C < 2 + tasks.length) {
+            ws[cellRef].s = {
+              fill: { fgColor: { rgb: "FFF8D6" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin", color: { rgb: "DDDDDD" } },
+                bottom: { style: "thin", color: { rgb: "DDDDDD" } },
+                left: { style: "thin", color: { rgb: "DDDDDD" } },
+                right: { style: "thin", color: { rgb: "DDDDDD" } }
+              }
+            };
+          }
+        }
+      }
+      ws['!pageSetup'] = { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+      ws['!margins'] = { top: 1.18, bottom: 0.59, left: 0.79, right: 0.79, header: 0.3, footer: 0.3 };
+      const footerStart = dataRows.length + 3;
+      XLSX.utils.sheet_add_aoa(ws, [["Боловсруулсан:"], ["Хянасан:"]], { origin: { r: footerStart, c: 0 } });
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Дүнгийн хүснэгт");
+
+      const meta = [
+        ["templateId", currentTemplateId],
+        ["school", school],
+        ["grade", grade],
+        ["subject", subject],
+        ["studentCount", students.length],
+        ["taskCount", tasks.length],
+        ["totalScore", total],
+        ["createdAt", new Date().toISOString()]
+      ];
+
+      const metaWs = XLSX.utils.aoa_to_sheet(meta);
+      XLSX.utils.book_append_sheet(wb, metaWs, "__SYSTEM_META__");
+
+      const metaIndex = wb.SheetNames.indexOf("__SYSTEM_META__");
+      if (metaIndex >= 0) {
+        wb.Workbook = wb.Workbook || {};
+        wb.Workbook.Sheets = wb.Workbook.Sheets || [];
+        wb.Workbook.Sheets[metaIndex] = { Hidden: 1 };
+      }
+
+      return { wb, filename: `${school}_${grade}_${subject}_шалгалт.xlsx` };
+    }
+
+    function generateExcel() {
+      const valid = tasks.every(t => parseFloat(t.score) > 0);
+      if (!valid) { alert('Даалгавар бүрийн оноог оруулна уу'); return; }
+
+      currentTemplateId = createTemplateId();
+
+      const { wb, filename } = buildExcelData();
+      XLSX.writeFile(wb, filename);
+      goPanel(2);
+    }
+
+    function redownloadExcel() {
+      currentTemplateId = createTemplateId();
+
+      const { wb, filename } = buildExcelData();
+      XLSX.writeFile(wb, filename);
+
+      uploadedFile = null;
+      studentData = [];
+      document.getElementById('fileName').textContent = '';
+      checkAnalyzeBtn();
+    }
+
+    // ── Step 3: Upload ──────────────────────────────────────────────────────────
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('uploadZone').classList.remove('drag');
+      handleFile(e.dataTransfer.files[0]);
+    }
+    function handleFileInput(inp) { handleFile(inp.files[0]); }
+
+    function handleFile(file) {
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(e.target.result, { type: 'array' });
+
+          const metaWs = wb.Sheets["__SYSTEM_META__"];
+          if (!metaWs) {
+            showUploadError("❌ Энэ файл системээс хамгийн сүүлд татсан дүнгийн файл биш байна. Та эхлээд Excel хүснэгтийг дахин татаж бөглөнө үү.");
+            return;
+          }
+
+          const metaRows = XLSX.utils.sheet_to_json(metaWs, { header: 1 });
+          const meta = {};
+          metaRows.forEach(r => {
+            if (r[0]) meta[r[0]] = r[1];
+          });
+
+          // if (meta.templateId !== currentTemplateId) {
+          //   showUploadError("❌ Энэ файл өмнө татсан эсвэл өөр шалгалтын файл байна. Зөвхөн хамгийн сүүлд татсан файлыг бөглөж оруулна уу.");
+          //   return;
+          // }
+
+          if (Number(meta.studentCount) !== students.length || Number(meta.taskCount) !== tasks.length) {
+            showUploadError("❌ Файлын сурагчийн тоо эсвэл даалгаврын тоо одоогийн тохиргоотой таарахгүй байна.");
+            return;
+          }
+
+          const ws = wb.Sheets["Дүнгийн хүснэгт"] || wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const dataRows = rows.slice(2, 2 + students.length);
+
+          let hasError = false;
+
+          studentData = dataRows.map((r, i) => {
+            const scores = tasks.map((t, j) => {
+              const val = parseFloat(r[j + 2]);
+              const maxScore = parseFloat(t.score) || 0;
+
+              if (isNaN(val)) {
+                hasError = true;
+                return 0;
+              }
+
+              if (val < 0 || val > maxScore) {
+                hasError = true;
+                return val;
+              }
+
+              return val;
+            });
+
+            return {
+              name: r[1] || students[i],
+              scores
+            };
+          });
+
+          if (hasError) {
+            showUploadError("❌ Файл дотор хоосон, буруу, эсвэл авах онооноос их оноо байна. Excel файлаа шалгаад дахин оруулна уу.");
+            return;
+          }
+
+          uploadedFile = file;
+          document.getElementById('fileName').textContent = '✓ ' + file.name;
+          checkAnalyzeBtn();
+
+        } catch (err) {
+          showUploadError("❌ Excel файлыг уншихад алдаа гарлаа. Зөвхөн системээс хамгийн сүүлд татсан .xlsx файлыг оруулна уу.");
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+    function checkAnalyzeBtn() {
+      const key = document.getElementById('apiKey').value.trim();
+      document.getElementById('analyzeBtn').disabled = !uploadedFile || !key;
+    }
+    document.getElementById('apiKey').addEventListener('input', checkAnalyzeBtn);
+
+    function getStudentTotal(s) {
+      return s.scores.reduce((a, b) => a + b, 0);
+    }
+
+    function getPercent(score, total) {
+      return total ? (score / total) * 100 : 0;
+    }
+
+    function getLevelBand(percent) {
+      const bands = [
+        { name: 'I', range: '0–29%', min: 0, max: 29 },
+        { name: 'II', range: '30–39%', min: 30, max: 39 },
+        { name: 'III', range: '40–49%', min: 40, max: 49 },
+        { name: 'IV', range: '50–59%', min: 50, max: 59 },
+        { name: 'V', range: '60–69%', min: 60, max: 69 },
+        { name: 'VI', range: '70–79%', min: 70, max: 79 },
+        { name: 'VII', range: '80–89%', min: 80, max: 89 },
+        { name: 'VIII', range: '90–100%', min: 90, max: 100 }
+      ];
+
+      return bands.find(b => percent >= b.min && percent <= b.max) || bands[0];
+    }
+
+    function renderDashboard() {
+      if (!studentData.length) return;
+
+      const totalScore = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
+      const reportDate = document.getElementById('reportDate').value || '';
+      const teacherName = document.getElementById('teacherName').value.trim() || '';
+      const totals = studentData.map(s => getStudentTotal(s));
+      const studentCount = studentData.length;
+
+      const avg = totals.reduce((a, b) => a + b, 0) / studentCount;
+      const max = Math.max(...totals);
+      const min = Math.min(...totals);
+      const passed = totals.filter(t => getPercent(t, totalScore) >= 60).length;
+      const failed = studentCount - passed;
+      const successRate = (passed / studentCount) * 100;
+
+      const riskStudents = studentData
+        .map(s => ({ name: s.name, total: getStudentTotal(s), percent: getPercent(getStudentTotal(s), totalScore) }))
+        .filter(s => s.percent < 60)
+        .sort((a, b) => a.percent - b.percent);
+
+      const topStudents = studentData
+        .map(s => ({
+          name: s.name,
+          total: getStudentTotal(s),
+          percent: getPercent(getStudentTotal(s), totalScore)
+        }))
+        .filter(s => s.percent >= 80)
+        .sort((a, b) => b.percent - a.percent);
+
+      const rankingStudents = studentData
+        .map(s => ({
+          name: s.name,
+          total: getStudentTotal(s),
+          percent: getPercent(getStudentTotal(s), totalScore)
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      const bands = [
+        { name: 'I', range: '0–29%', min: 0, max: 29 },
+        { name: 'II', range: '30–39%', min: 30, max: 39 },
+        { name: 'III', range: '40–49%', min: 40, max: 49 },
+        { name: 'IV', range: '50–59%', min: 50, max: 59 },
+        { name: 'V', range: '60–69%', min: 60, max: 69 },
+        { name: 'VI', range: '70–79%', min: 70, max: 79 },
+        { name: 'VII', range: '80–89%', min: 80, max: 89 },
+        { name: 'VIII', range: '90–100%', min: 90, max: 100 }
+      ];
+
+      const bandData = bands.map(b => ({
+        ...b,
+        count: totals.filter(t => {
+          const p = getPercent(t, totalScore);
+          return p >= b.min && p <= b.max;
+        }).length
+      }));
+
+      const taskPerformance = tasks.map((t, i) => {
+        const maxScore = parseFloat(t.score) || 1;
+        const sum = studentData.reduce((a, s) => a + (s.scores[i] || 0), 0);
+        const percent = (sum / (studentCount * maxScore)) * 100;
+
+        return {
+          label: t.label || `Даалгавар ${i + 1}`,
+          percent,
+          difficulty: t.difficulty,
+          level: t.level,
+          criterion: t.criterion || 'Шалгуур сонгоогүй'
+        };
+      });
+
+      const weakTasks = taskPerformance.filter(t => t.percent < 60).sort((a, b) => a.percent - b.percent);
+      const strongTasks = taskPerformance.filter(t => t.percent >= 85).sort((a, b) => b.percent - a.percent);
+
+      const taxonomyMap = {};
+      taskPerformance.forEach(t => {
+        if (!taxonomyMap[t.level]) taxonomyMap[t.level] = [];
+        taxonomyMap[t.level].push(t.percent);
+      });
+
+      const taxonomyData = Object.keys(taxonomyMap).map(level => {
+        const arr = taxonomyMap[level];
+        return {
+          level,
+          percent: arr.reduce((a, b) => a + b, 0) / arr.length,
+          count: arr.length
+        };
+      }).sort((a, b) => a.percent - b.percent);
+
+      const criterionMap = {};
+      taskPerformance.forEach(t => {
+        if (!criterionMap[t.criterion]) criterionMap[t.criterion] = [];
+        criterionMap[t.criterion].push(t.percent);
+      });
+
+      const studentMistakes = studentData.map(s => {
+        const missedTasks = tasks.map((t, i) => {
+          const score = Number(s.scores[i]) || 0;
+          const maxScore = Number(t.score) || 0;
+
+          if (score >= maxScore) return null;
+
+          return {
+            taskLabel: t.label || `Даалгавар ${i + 1}`,
+            score,
+            maxScore,
+            lostScore: maxScore - score,
+            criterion: t.criterion || 'Шалгуур сонгоогүй',
+            level: t.level,
+            difficulty: t.difficulty
+          };
+        }).filter(Boolean);
+
+        return {
+          name: s.name,
+          missedTasks
+        };
+      });
+      const criterionData = Object.keys(criterionMap).map(c => {
+        const arr = criterionMap[c];
+        return {
+          criterion: c,
+          percent: arr.reduce((a, b) => a + b, 0) / arr.length,
+          count: arr.length
+        };
+      }).sort((a, b) => a.percent - b.percent);
+
+      const maxBand = Math.max(...bandData.map(b => b.count), 1);
+
+      const html = `
+    <div style="margin-bottom:24px">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:6px">
+        Шалгалтын дүгнэлт
+      </div>
+      <div style="color:var(--muted);font-size:.9rem;line-height:1.8;margin-top:8px">
+        <div><strong>Тайлангийн төрөл:</strong> Шалгалтын дүгнэлт</div>
+        ${reportDate
+          ? `<div><strong>Тайлан гаргасан огноо:</strong> ${reportDate}</div>`
+          : ''
+        }
+        ${teacherName
+          ? `<div><strong>Тайлан гаргасан багш:</strong> ${teacherName}</div>`
+          : ''
+        }
+      </div>
+      ${examMaterialFile
+          ? `<div style="margin-top:8px;color:var(--accent);font-size:.85rem">
+            Ашигласан шалгалтын материал: ${examMaterialFile.name}
+          </div>`
+          : ''
+        }
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
+      ${[
+          ['Дундаж оноо', `${avg.toFixed(1)} / ${totalScore}`],
+          ['Амжилтын хувь', `${successRate.toFixed(1)}%`],
+          ['Хамгийн өндөр', `${max}`],
+          ['Хамгийн бага', `${min}`],
+          ['Тэнцсэн', `${passed} сурагч`],
+          ['Эрсдэлтэй', `${failed} сурагч`]
+        ].map(k => `
+        <div style="padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:12px">
+          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase">${k[0]}</div>
+          <div style="font-size:1.35rem;font-weight:700;color:var(--accent);margin-top:4px">${k[1]}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="analysis-section">
+  <h3>1. Тэнцсэн / Тэнцээгүй сурагчдын харьцаа</h3>
+
+  <div class="pie-wrap">
+    <div class="pie-chart" style="--pass:${successRate}%"></div>
+
+    <div class="pie-legend">
+      <div><span class="legend-dot dot-pass"></span>Тэнцсэн: ${passed} сурагч (${successRate.toFixed(1)}%)</div>
+      <div><span class="legend-dot dot-fail"></span>Тэнцээгүй: ${failed} сурагч (${(100 - successRate).toFixed(1)}%)</div>
+    </div>
+  </div>
+</div>
+
+    <div class="analysis-section">
+  <h3>2. Ангийн гүйцэтгэлийн тархалт</h3>
+  <div class="compact-chart">
+    ${bandData.map(b => `
+      <div class="compact-row">
+        <div class="compact-label">${b.name} түвшин<br><span style="color:var(--muted);font-weight:400">${b.range}</span></div>
+        <div class="compact-track">
+          <div class="compact-fill" style="width:${(b.count / maxBand) * 100}%"></div>
+        </div>
+        <div class="compact-value">${b.count} сурагч</div>
+      </div>
+    `).join('')}
+  </div>
+</div>
+
+    <div class="analysis-section">
+      <h3>3. Гүйцэтгэлийн 8 түвшний ангилал</h3>
+      <div class="analysis-content">
+        ${studentData.map(s => {
+          const total = getStudentTotal(s);
+          const p = getPercent(total, totalScore);
+          const band = getLevelBand(p);
+          return `• ${s.name}: ${total}/${totalScore} (${p.toFixed(1)}%) — ${band.name} түвшин`;
+        }).join('<br>')}
+      </div>
+    </div>
+
+    <div class="analysis-section">
+  <h3>4. Даалгавар бүрийн гүйцэтгэл</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Даалгавар</th>
+        <th>Шалгуур</th>
+        <th>Түвшин</th>
+        <th>Гүйцэтгэл</th>
+        <th>Үнэлгээ</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${taskPerformance.map(t => {
+          const status = t.percent >= 80 ? 'Сайн' : t.percent >= 60 ? 'Дундаж' : 'Анхаарах';
+          const cls = t.percent >= 80 ? 'status-good' : t.percent >= 60 ? 'status-mid' : 'status-risk';
+          const rowClass =
+            t.percent < 60
+              ? 'task-danger'
+              : t.percent >= 85
+                ? 'task-good'
+                : '';
+          return `
+          <tr class="${rowClass}">
+            <td>${t.label}</td>
+            <td>${t.criterion}</td>
+            <td>${t.level}</td>
+            <td>${Math.min(t.percent, 100).toFixed(1)}%</td>
+            <td class="${cls}">${status}</td>
+          </tr>
+        `;
+        }).join('')}
+    </tbody>
+  </table>
+</div>
+
+    <div class="analysis-section">
+      <h3>5. Таксаномийн түвшний эзэмшил</h3>
+      <div class="analysis-content">
+        ${taxonomyData.map(t => `
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-label">
+              <span>${t.level} (${t.count} даалгавар)</span>
+              <span>${t.percent.toFixed(1)}%</span>
+            </div>
+            <div class="chart-bar-bg">
+              <div class="chart-bar-fill" style="width:${Math.min(t.percent, 100)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+   <div class="analysis-section">
+  <h3>6. Үнэлгээний шалгуурын анализ</h3>
+  <div class="compact-chart">
+    ${criterionData.map(c => `
+      <div class="compact-row">
+        <div class="compact-label">${c.criterion}<br><span style="color:var(--muted);font-weight:400">${c.count} даалгавар</span></div>
+        <div class="compact-track">
+          <div class="compact-fill" style="width:${Math.min(c.percent, 100)}%"></div>
+        </div>
+        <div class="compact-value">${c.percent.toFixed(1)}%</div>
+      </div>
+    `).join('')}
+  </div>
+</div>
+
+    <div class="analysis-section">
+      <h3>7. Эрсдэлтэй сурагчид</h3>
+      <div class="analysis-content">
+        ${riskStudents.length
+          ? riskStudents.map(s => `• ${s.name}: ${s.total}/${totalScore} (${s.percent.toFixed(1)}%)`).join('<br>')
+          : '60%-иас доош гүйцэтгэлтэй сурагч байхгүй.'}
+      </div>
+    </div>
+
+    <div class="analysis-section">
+      <h3>8. Өндөр гүйцэтгэлтэй сурагчид</h3>
+      <div class="analysis-content">
+
+  ${topStudents.length
+          ? `
+      <div class="top-students-grid">
+
+        ${topStudents.map((s, i) => `
+
+          <div class="top-student-card">
+
+            <div class="top-student-rank">
+              🏆 TOP ${i + 1}
+            </div>
+
+            <div class="top-student-name">
+              ${s.name}
+            </div>
+
+            <div class="top-student-score">
+              ${s.total}/${totalScore} оноо
+              <br>
+              ${s.percent.toFixed(1)}%
+            </div>
+
+          </div>
+
+        `).join('')}
+
+      </div>
+    `
+          : '80%-иас дээш гүйцэтгэлтэй сурагч байхгүй.'
+        }
+
+</div>
+    </div>
+    <div class="analysis-section">
+     <h3>9. Сурагчдын ranking</h3>
+
+      <table class="data-table">
+        <thead>
+           <tr>
+             <th>Байр</th>
+             <th>Нэр</th>
+             <th>Оноо</th>
+             <th>Хувь</th>
+           </tr>
+        </thead>
+
+        <tbody>
+          ${rankingStudents.map((s, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${s.name}</td>
+                <td>${s.total}/${totalScore}</td>
+                <td>${s.percent.toFixed(1)}%</td>
+              </tr>
+            `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="analysis-section">
+  <h3>10. Сурагч бүрийн оноо алдсан даалгавар</h3>
+
+  <div class="analysis-content">
+    ${studentMistakes.map(s => `
+      <div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg)">
+        <strong>${s.name}</strong>
+
+        ${s.missedTasks.length
+            ? `
+            <div style="margin-top:8px">
+              ${s.missedTasks.map(m => `
+                <div style="margin-bottom:6px">
+                  • ${m.taskLabel}: ${m.score}/${m.maxScore}
+                  — ${m.criterion}
+                  <span style="color:var(--muted)">(${m.level}, ${m.difficulty})</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div style="margin-top:10px;color:#c0392b;font-weight:600">
+              Зөвлөмж: Энэ сурагчид дээрх шалгуураар богино давтлага, нэмэлт дасгал өгөх шаардлагатай.
+            </div>
+          `
+            : `
+            <div style="margin-top:8px;color:#1f7a45;font-weight:600">
+              Бүх даалгаврыг бүрэн гүйцэтгэсэн.
+            </div>
+          `
+          }
+      </div>
+    `).join('')}
+  </div>
+</div>
+
+    <div class="analysis-section">
+      <h3>11. Судлаачийн дүгнэлт ба зөвлөмж</h3>
+      <div class="analysis-content">
+        Ангийн дундаж гүйцэтгэл ${avg.toFixed(1)} оноо буюу ${getPercent(avg, totalScore).toFixed(1)}% байна.
+        ${successRate >= 85
+          ? 'Ерөнхий гүйцэтгэл сайн түвшинд байна. Ахисан түвшний даалгавар, бүтээлч хэрэглээний дасгал нэмэх боломжтой.'
+          : successRate >= 60
+            ? 'Ерөнхий гүйцэтгэл дундаж түвшинд байна. Сул даалгавар болон шалгуур дээр чиглэсэн давтлага шаардлагатай.'
+            : 'Ерөнхий гүйцэтгэл хангалтгүй байна. Суурь ойлголтыг дахин бататгах, ялгаатай түвшний дэмжлэг хэрэгтэй.'
+        }<br><br>
+
+        Сул даалгавар:
+        ${weakTasks.length ? weakTasks.slice(0, 3).map(t => `${t.label} (${t.percent.toFixed(1)}%)`).join(', ') : 'байхгүй'}<br>
+
+        Сайн даалгавар:
+        ${strongTasks.length ? strongTasks.slice(0, 3).map(t => `${t.label} (${t.percent.toFixed(1)}%)`).join(', ') : 'байхгүй'}<br><br>
+
+        Зөвлөмж:
+        <br>• 60%-иас доош гүйцэтгэлтэй даалгаврыг дахин бататгах.
+        <br>• Эрсдэлтэй сурагчдад богино хугацааны нэмэлт дасгал өгөх.
+        <br>• Сайн гүйцэтгэлтэй сурагчдад ахисан түвшний даалгавар өгөх.
+        <br>• Сул таксаномийн түвшин болон үнэлгээний шалгуурыг дараагийн хичээлийн төлөвлөлтөд тусгах.
+      </div>
+    </div>
+  `;
+
+      document.getElementById('chartArea').innerHTML = html;
+    }
+
+    // ── Step 4: Analysis ────────────────────────────────────────────────────────
+    async function doAnalysis() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('API key оруулна уу');
+        return;
+      }
+
+      const customPrompt = document.getElementById('customPrompt')?.value.trim();
+      const prompt = customPrompt || buildAIPrompt();
+
+      goPanel(3);
+      document.getElementById('analysisLoading').style.display = 'block';
+      document.getElementById('analysisError').style.display = 'none';
+      document.getElementById('analysisResult').innerHTML = '';
+      document.getElementById('pdfBar').style.display = 'none';
+      document.getElementById('retryBtn').style.display = 'none';
+
+      renderDashboard();
+      window.lastAnalysisHTML = document.getElementById('chartArea').innerHTML;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            contents: [{parts: [{text: prompt}]}],
+            generationConfig: {maxOutputTokens: 3000, temperature: 0.3}
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const text = json.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || 'Хариу ирсэнгүй.';
+        renderAnalysis(text);
+      } catch (e) {
+        document.getElementById('analysisError').textContent = 'Алдаа: ' + e.message;
+        document.getElementById('analysisError').style.display = 'block';
+        document.getElementById('retryBtn').style.display = 'inline-flex';
+      } finally {
+        document.getElementById('analysisLoading').style.display = 'none';
+      }
+    }
+
+    function buildAIPrompt() {
+      const school = document.getElementById('schoolName').value || 'Сургууль';
+      const grade = document.getElementById('grade').value || 'Анги';
+      const subject = document.getElementById('subjectName').value || 'Хичээл';
+      const reportDate = document.getElementById('reportDate').value || 'Огноо оруулаагүй';
+      const teacherName = document.getElementById('teacherName').value || 'Багшийн нэр оруулаагүй';
+
+      const totalScore = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
+
+      const studentRows = studentData.map(s => {
+        const total = getStudentTotal(s);
+        const percent = getPercent(total, totalScore).toFixed(1);
+        return `${s.name}: ${total}/${totalScore} (${percent}%)`;
+      }).join('\n');
+
+      const taskRows = tasks.map((t, i) => {
+        const maxScore = parseFloat(t.score) || 0;
+        const sum = studentData.reduce((a, s) => a + (s.scores[i] || 0), 0);
+        const percent = studentData.length
+          ? ((sum / (studentData.length * maxScore)) * 100).toFixed(1)
+          : 0;
+
+        return `Даалгавар ${t.label || i + 1}: авах оноо ${maxScore}, гүйцэтгэл ${percent}%, хүндрэл ${t.difficulty}, таксаноми ${t.level}, шалгуур: ${t.criterion}`;
+      }).join('\n');
+
+      const mistakeRows = studentData.map(s => {
+        const missed = tasks.map((t, i) => {
+          const score = Number(s.scores[i]) || 0;
+          const maxScore = Number(t.score) || 0;
+
+          if (score >= maxScore) return null;
+
+          return `${t.label || i + 1} (${score}/${maxScore}, ${t.criterion}, ${t.level}, ${t.difficulty})`;
+        }).filter(Boolean);
+
+        return `${s.name}: ${missed.length ? missed.join('; ') : 'алдаагүй'}`;
+      }).join('\n');
+
+      const materialText = examMaterialFile
+        ? `Хавсаргасан шалгалтын материал: ${examMaterialFile.name}`
+        : 'Шалгалтын материал файл хавсаргаагүй.';
+
+      return `Та ерөнхий боловсролын сургуулийн үнэлгээ, оношилгооны туршлагатай боловсролын судлаач, арга зүйч багшийн дүрээр ажиллана уу.
+
+Доорх өгөгдөл дээр үндэслэн багшид зориулсан дэлгэрэнгүй, мэргэжлийн, хэрэгжүүлэх боломжтой шалгалтын анализ бичнэ үү.
+
+Зорилго:
+1. Ангийн ерөнхий гүйцэтгэлийг оношлох
+2. Даалгавар бүрийн гүйцэтгэлийг тайлбарлах
+3. Таксаномийн түвшний эзэмшлийг дүгнэх
+4. Үнэлгээний шалгуурын сул болон сайн талыг тодорхойлох
+5. Эрсдэлтэй сурагчдад зориулсан зөвлөмж гаргах
+6. Дараагийн хичээл, давтлага, ялгаатай даалгаврын санал өгөх
+7. Тайланг багш шууд ашиглаж болохуйц албан, ойлгомжтой хэлбэрээр бичих
+
+Тайлангийн мэдээлэл:
+- Сургууль: ${school}
+- Анги: ${grade}
+- Хичээл: ${subject}
+- Тайлан гаргасан огноо: ${reportDate}
+- Тайлан гаргасан багш: ${teacherName}
+- Нийт авах оноо: ${totalScore}
+- ${materialText}
+
+Сурагчдын нийт гүйцэтгэл:
+${studentRows}
+
+Даалгавар бүрийн бүтэц ба гүйцэтгэл:
+${taskRows}
+
+Сурагч бүрийн оноо алдсан даалгавар:
+${mistakeRows}
+
+Гарах тайлангийн бүтэц:
+1. Ерөнхий дүгнэлт
+2. Ангийн гүйцэтгэлийн оношилгоо
+3. Даалгавар бүрийн шинжилгээ
+4. Таксаномийн түвшний анализ
+5. Үнэлгээний шалгуурын анализ
+6. Эрсдэлтэй сурагчдын оношилгоо
+7. Дараагийн хичээлд ашиглах арга зүйн зөвлөмж
+8. Сурагчдад ялгаатай даалгавар өгөх санал
+9. Богино хугацааны сайжруулах төлөвлөгөө
+
+Анхаарах зүйл:
+- Ерөнхий, хоосон зөвлөмж бүү бич.
+- Дээрх өгөгдөлд тулгуурлан бич.
+- Багш шууд хэрэглэж болох өгүүлбэрээр бич.
+- Монгол хэлээр бич.
+`.trim();
+    }
+
+    function renderAnalysis(text) {
+      window.lastAnalysisText = text;
+
+      const sections = text.split(/###\s+/).filter(Boolean);
+      const html = sections.map(sec => {
+        const lines = sec.split('\n');
+        const title = lines[0].trim();
+        const body = lines.slice(1).join('\n').trim();
+
+        return `
+      <div class="analysis-section">
+        <h3>${title}</h3>
+        <div class="analysis-content">${body}</div>
+      </div>
+    `;
+      }).join('');
+
+      document.getElementById('analysisResult').innerHTML = html;
+      document.getElementById('pdfBar').style.display = 'flex';
+    }
+    function downloadWordReport() {
+
+      const school =
+        document.getElementById('schoolName').value || 'Сургууль';
+
+      const grade =
+        document.getElementById('grade').value || 'Анги';
+
+      const subject =
+        document.getElementById('subjectName').value || 'Хичээл';
+
+      const content = `
+  <html>
+  <head>
+    <meta charset="UTF-8">
+
+    <style>
+
+      body{
+        font-family:Arial,sans-serif;
+        padding:30px;
+        color:#111;
+      }
+
+      h1{
+        text-align:center;
+        margin-bottom:10px;
+      }
+
+      table{
+        width:100%;
+        border-collapse:collapse;
+        margin-top:14px;
+      }
+
+      th,td{
+        border:1px solid #ccc;
+        padding:8px;
+        font-size:12px;
+      }
+
+      th{
+        background:#f3f3f3;
+      }
+
+      .analysis-section{
+        margin-bottom:24px;
+      }
+
+      .compact-track{
+        background:#ddd;
+        height:10px;
+        border-radius:20px;
+      }
+
+      .compact-fill{
+        background:#2d5a3d;
+        height:10px;
+        border-radius:20px;
+      }
+        
+      .pie-wrap{
+       display:flex;
+       align-items:center;
+       gap:22px;
+       flex-wrap:wrap;
+      }
+
+      .pie-chart{
+      width:160px;
+      height:160px;
+      border-radius:50%;
+      background:conic-gradient(
+         #2d5a3d 0 var(--pass),
+         #c0392b var(--pass) 100%
+            );
+       }
+
+      .pie-legend{
+         font-size:.9rem;
+         line-height:1.8;
+         }
+
+    .legend-dot{
+       display:inline-block;
+       width:12px;
+       height:12px;
+       border-radius:50%;
+       margin-right:8px;
+    }
+
+    .dot-pass{background:#2d5a3d}
+    .dot-fail{background:#c0392b}
+      
+     
+
+    </style>
+  </head>
+
+  <body>
+
+    <h1>Шалгалтын анализийн тайлан</h1>
+
+    <p>
+      <strong>${school}</strong> |
+      ${grade} |
+      ${subject}
+    </p>
+
+    ${window.lastAnalysisHTML}
+
+  </body>
+  </html>
+  `;
+
+      const blob = new Blob(
+        ['\ufeff', content],
+        { type: 'application/msword' }
+      );
+
+      const link = document.createElement('a');
+
+      link.href = URL.createObjectURL(blob);
+
+      link.download =
+        `${school}_${grade}_${subject}_анализ.doc`;
+
+      link.click();
+    }
+
+    function generateAIPrompt() {
+      const customPrompt = document.getElementById('customPrompt')?.value.trim();
+      const prompt = customPrompt || buildAIPrompt();
+      document.getElementById('aiPromptText').value = prompt;
+      document.getElementById('aiPromptBox').style.display = 'block';
+      document.getElementById('aiPromptBox').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyAIPrompt() {
+      const text = document.getElementById('aiPromptText');
+      text.select();
+      document.execCommand('copy');
+      alert('AI prompt хуулагдлаа.');
+    }
+
+    function pasteApiKey() {
+      const key = 'AIzaSyCBGnsETaCChkSkT8WFlHGDaKMQTI9oUM0';
+      const input = document.getElementById('apiKey');
+      input.value = key;
+      checkAnalyzeBtn();
+      alert('API key талбарт байрлууллаа.');
+    }
+
+    function downloadPDFReport() {
+      if (!window.lastAnalysisHTML) {
+        alert('PDF болгох анализ байхгүй байна.');
+        return;
+      }
+
+      const school = document.getElementById('schoolName').value || 'Сургууль';
+      const grade = document.getElementById('grade').value || 'Анги';
+      const subject = document.getElementById('subjectName').value || 'Хичээл';
+
+      const wrapper = document.createElement('div');
+      wrapper.style.padding = '20px';
+      wrapper.style.fontFamily = 'Arial, sans-serif';
+      wrapper.style.fontSize = '12px';
+      wrapper.style.lineHeight = '1.7';
+      wrapper.style.color = '#111';
+      wrapper.style.background = '#fff';
+
+      wrapper.innerHTML = `
+    <h1 style="text-align:center;font-size:22px;margin-bottom:6px;">
+      Шалгалтын анализийн тайлан
+    </h1>
+
+    <div style="text-align:center;font-size:12px;margin-bottom:22px;color:#666;">
+      ${school} | ${grade} | ${subject}
+    </div>
+
+    <div>
+      ${window.lastAnalysisHTML}
+    </div>
+  `;
+
+      const fileName = `${school}_${grade}_${subject}_анализ.pdf`;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: {
+          mode: ['css', 'legacy']
+        }
+      };
+
+      html2pdf().set(opt).from(wrapper).save();
+    }
+  </script>
+</body>
+
+</html>

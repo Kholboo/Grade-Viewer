@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Багшийн Туслах Вэб Сайт</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* --- ХЭРЭГЛЭГЧ СОЛИХ БОЛОМЖТОЙ HEADER ЗУРАГ --- */
+        .header-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #2c3e50;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .header-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Зургийг сунгахгүйгээр тааруулна */
+        }
+
+        /* Header доторх гарчиг */
+        .header-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        /* Зураг солих товчлууруудын ерөнхий загвар */
+        .upload-btn {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid rgba(255,255,255,0.3);
+            z-index: 10;
+        }
+        .upload-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .upload-btn input {
+            display: none; /* Үндсэн муухай харагддаг input-ийг нуух */
+        }
+
+        /* Header-ийн зураг солих товчны байршил */
+        .header-upload {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        /* --- ЦЭСНИЙ ХЭСЭГ --- */
+        .menu-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Цэсний карт бүрийн загвар */
+        .menu-card {
+            background-color: #ffffff;
+            border-radius: 15px;
+            width: 320px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            color: #333;
+            transition: all 0.3s ease;
+            position: relative; /* Дотор нь байгаа товчлуурыг байрлуулахад хэрэгтэй */
+            border: 2px solid transparent;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+
+        /* Линк болгож ажиллах дарагддаг хэсэг */
+        .menu-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        /* Дугуй дүрсний загвар */
+        .icon-circle {
+            width: 100px;
+            height: 100px;
+            background-color: #e8f4fd;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            overflow: hidden; /* Зураг дугуй дүрснээс гадагш гарахгүй */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px solid #3498db;
+        }
+
+        /* Дугуй дотор орох хэрэглэгчийн зураг */
+        .icon-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Цэсний зураг солих товчны байршил (Карт бүрийн баруун дээр) */
+        .icon-upload {
+            top: 15px;
+            right: 15px;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+        }
+
+        /* Гарчиг болон Текстүүдийн загвар */
+        .menu-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .menu-description {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <img id="headerImage" class="header-bg" src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1600" alt="Header Background">
+        
+        <div class="header-title">Багшийн Туслах Систем</div>
+        
+        <label class="upload-btn header-upload">
+            <i class="fa-solid fa-camera"></i> Кoвер зураг солих
+            <input type="file" accept="image/*" onchange="changeHeaderImage(event)">
+        </label>
+    </div>
+
+    <div class="menu-container">
+
+        <div class="menu-card">
+           
+            
+            <a href="Grade_viewer/exam-analysis.html" class="menu-link">
+                <div class="icon-circle">
+                    <img id="iconImg1" src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=200" alt="Ирц">
+                </div>
+                <div class="menu-title">Шалгалтын анализ</div>
+                <div class="menu-description">Багш нарт зориулсан ойлгомжтой бүтэцтэй шалгалтын анализыг үр дүнтэй боловсруулагч төлбөргүй систем.</div>
+            </a>
+        </div>
+
+        <div class="menu-card">
+           
+            
+            <a href="https://example.com/grades" class="menu-link">
+                <div class="icon-circle">
+                    <img id="iconImg2" src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=200" alt="Дүн">
+                </div>
+                <div class="menu-title">Дүнгийн Бүртгэл</div>
+                <div class="menu-description">Шалгалт болон явцын дүнгүүдийг оруулж, сурагчдын амжилтыг дүгнэх хэсэг.</div>
+            </a>
+        </div>
+
+        <div class="menu-card">
+            
+            
+            <a href="https://example.com/lesson-plan" class="menu-link">
+                <div class="icon-circle">
+                    <img id="iconImg3" src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=200" alt="Төлөвлөгөө">
+                </div>
+                <div class="menu-title">Хичээлийн Төлөвлөгөө</div>
+                <div class="menu-description">Жил, улирал, өдрөөр хичээлийн хөтөлбөрөө төлөвлөж, бэлтгэлээ хангах хэсэг.</div>
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        // Header зургийг солих функц
+        function changeHeaderImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('headerImage').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Цэсний жижиг дүрсийг (Icon) солих функц
+        function changeMenuIcon(event, targetImageId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(targetImageId).src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+
+</body>
+</html>
