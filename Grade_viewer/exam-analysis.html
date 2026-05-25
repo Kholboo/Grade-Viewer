@@ -1010,6 +1010,17 @@
               Prompt хуулах
             </button>
           </div>
+
+          <div class="field" style="margin-top:16px">
+            <label>API Key (дэлгэрэнгүй анализ хийх)</label>
+            <input type="password" id="aiPromptBoxApiKey" placeholder="API key оруулна уу" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:monospace;font-size:.85rem;line-height:1.4">
+          </div>
+
+          <div class="actions actions-end" style="margin-top:12px">
+            <button class="btn btn-primary" onclick="doDetailedAnalysis()">
+              Дэлгэрэнгүй анализ хийх
+            </button>
+          </div>
         </div>
 
 
@@ -2314,6 +2325,53 @@ ${mistakeRows}
       text.select();
       document.execCommand('copy');
       alert('AI prompt хуулагдлаа.');
+    }
+
+    async function doDetailedAnalysis() {
+      const key = document.getElementById('aiPromptBoxApiKey').value.trim() || document.getElementById('apiKey').value.trim();
+      if (!key) {
+        alert('API key оруулна уу.');
+        return;
+      }
+
+      const prompt = document.getElementById('aiPromptText').value.trim();
+      if (!prompt) {
+        alert('AI prompt-oo оруулна уу.');
+        return;
+      }
+
+      document.getElementById('analysisLoading').style.display = 'block';
+      document.getElementById('analysisError').style.display = 'none';
+      document.getElementById('analysisResult').innerHTML = '';
+      document.getElementById('pdfBar').style.display = 'none';
+      document.getElementById('retryBtn').style.display = 'none';
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${key}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            contents: [{parts: [{text: prompt}]}],
+            generationConfig: {maxOutputTokens: 3000, temperature: 0.3}
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const text = json.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || 'Хариу ирсэнгүй.';
+        renderAnalysis(text);
+      } catch (e) {
+        document.getElementById('analysisError').textContent = 'Алдаа: ' + e.message;
+        document.getElementById('analysisError').style.display = 'block';
+        document.getElementById('retryBtn').style.display = 'inline-flex';
+      } finally {
+        document.getElementById('analysisLoading').style.display = 'none';
+      }
     }
 
     function downloadPDFReport() {
