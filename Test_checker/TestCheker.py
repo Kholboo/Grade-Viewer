@@ -1,7 +1,7 @@
 from flask import Flask, request, send_file, jsonify
 import pandas as pd
 import os
-
+#1-b, 2-b, 3-b, 4-b, 5-b, 6-b, 7-b, 8-b, 9-b,10-b,11-a,12-a,13-a,14-a,15-b
 app = Flask(__name__)
 
 # Энэ функцийг та өөрийн тестийн зөв хариултуудтай тааруулж хөгжүүлнэ
