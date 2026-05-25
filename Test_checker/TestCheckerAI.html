@@ -49,7 +49,7 @@
             border-radius: 4px;
         }
         .api-input { width: 350px; }
-        .ans-input { width: 100%; height: 50px; font-family: monospace; resize: vertical; }
+        .ans-input { width: 100%; height: 70px; font-family: monospace; resize: vertical; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -99,6 +99,7 @@
         .btn-delete:hover { background: #c0392b; }
         .preview-img { max-width: 80px; max-height: 80px; border-radius: 4px; margin-top: 5px; display: block; margin-left: auto; margin-right: auto;}
         .status-text { font-size: 12px; font-weight: bold; color: #7f8c8d; }
+        
         /* Preview Modal Styles */
         .preview-modal {
             position: fixed;
@@ -110,9 +111,7 @@
             z-index: 9999;
             padding: 20px;
         }
-        .preview-modal.active {
-            display: flex;
-        }
+        .preview-modal.active { display: flex; }
         .preview-modal-content {
             position: relative;
             background: white;
@@ -132,39 +131,14 @@
             align-items: center;
             justify-content: space-between;
         }
-        .preview-modal-title {
-            font-weight: bold;
-            font-size: 16px;
-            color: #2c3e50;
-        }
-        .preview-modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-        .preview-modal-close:hover {
-            color: #000;
-        }
-        .preview-modal-body {
-            padding: 20px;
-            text-align: center;
-        }
-        .preview-modal-body img {
-            max-width: 100%;
-            max-height: 70vh;
-            border-radius: 8px;
-        }
-        .preview-image-clickable {
-            cursor: pointer;
-            border-radius: 4px;
-            transition: 0.2s;
-        }
-        .preview-image-clickable:hover {
-            opacity: 0.8;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
+        .preview-modal-title { font-weight: bold; font-size: 16px; color: #2c3e50; }
+        .preview-modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .preview-modal-close:hover { color: #000; }
+        .preview-modal-body { padding: 20px; text-align: center; }
+        .preview-modal-body img { max-width: 100%; max-height: 70vh; border-radius: 8px; }
+        .preview-image-clickable { cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .preview-image-clickable:hover { opacity: 0.8; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+        
         /* Status Modal Styles */
         .status-modal {
             position: fixed;
@@ -176,58 +150,94 @@
             z-index: 9998;
             padding: 20px;
         }
-        .status-modal.active {
-            display: flex;
-        }
+        .status-modal.active { display: flex; }
         .status-modal-content {
             position: relative;
             background: white;
             border-radius: 12px;
-            max-width: 700px;
-            max-height: 80vh;
-            overflow: auto;
+            width: 95vw;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
         }
         .status-modal-header {
+            padding: 16px 20px;
             font-weight: bold;
             font-size: 18px;
             color: #2c3e50;
-            margin-bottom: 16px;
+            border-bottom: 1px solid #eee;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: white;
         }
-        .status-modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
+        .status-modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .status-modal-close:hover { color: #000; }
+        
+        /* Split-screen layout */
+        .status-split-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: #f8f9fa;
         }
-        .status-modal-close:hover {
-            color: #000;
+        .status-left-pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #e0e0e0;
+            background: white;
         }
-        .answer-key {
+        .status-right-pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: #f1f3f5;
+        }
+        .status-right-pane img {
+            max-width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .pane-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #34495e;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            width: 100%;
+        }
+        
+        /* Шинэ хөндлөн түлхүүрийн загвар */
+        .answer-key-horizontal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 6px;
             background: #f0f4f8;
-            padding: 16px;
+            padding: 12px;
             border-radius: 8px;
-            margin: 12px 0;
-            font-family: monospace;
-            font-size: 14px;
-            line-height: 1.8;
+            margin: 10px 0;
             border-left: 4px solid #4A90E2;
         }
-        .answer-list {
-            list-style: none;
-            padding: 0;
-        }
-        .answer-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .answer-list li:last-child {
-            border-bottom: none;
+        .answer-key-item {
+            background: white;
+            padding: 4px 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 13px;
+            border: 1px solid #d1d5db;
+            font-weight: bold;
+            color: #2c3e50;
         }
     </style>
 </head>
@@ -242,13 +252,14 @@
             <input type="password" id="apiKey" class="api-input" placeholder="AI түлхүүрээ энд хуулна уу...">
             <span style="font-size: 12px; color: #666;">(<a href="https://aistudio.google.com/" target="_blank">Эндээс үнэгүй авах</a>)</span>
         </div>
-        <div class="config-row">
-            <label>2. Тестийн нийт асуултын тоо:</label>
-            <input type="number" id="maxScore" value="10" style="width: 60px;" onchange="recalculateAll()">
-        </div>
         <div>
-            <label>3. Тестийн зөв хариултууд (Зааварчилгаа болгож AI-д өгнө):</label>
-            <textarea id="correctAnswers" class="ans-input" placeholder="Жишээ: 1.A, 2.B, 3.C, 4.D, 5.A ... эсвэл 'Зөв хариултууд: 1-Б, 2-В, 3-А' гэж бичиж болно"></textarea>
+            <label>2. Тестийн зөв хариултууд (Заавал биш - Хоосон орхивол AI автоматаар зургнаас тоолно):</label>
+            <textarea id="correctAnswers" class="ans-input" oninput="autoDetectQuestionCount()" placeholder="Жишээ: 1.A, 2.B, 3.C... Эсвэл хоосон орхиж болно. Хоосон орхивол AI тестийн зургнаас асуултын нийт тоо болон түлхүүрийг өөрөө олно."></textarea>
+        </div>
+        <div class="config-row" style="background: #e2e8f0; padding: 10px; border-radius: 6px; font-size: 14px;">
+            <strong>📊 Нийт асуултын тоо (Макс оноо):</strong> 
+            <input type="number" id="maxScore" value="0" style="width: 60px; font-weight: bold; background: #fff;" onid="recalculateAll()">
+            <span id="detectionMode" style="font-size: 12px; color: #555; margin-left: 10px;">(Хариулт оруулаагүй үед AI зураг бүрээр бие даан тоолно)</span>
         </div>
     </div>
 
@@ -288,15 +299,48 @@
 <div id="statusModal" class="status-modal" onclick="closeTestStatus(event)">
     <div class="status-modal-content" onclick="event.stopPropagation()">
         <div class="status-modal-header">
-            <div>Тестийн зөв/буруу статус</div>
+            <div id="statusHeaderTitle">📊 Тестийн үр дүн ба Эх зураг тулгалт</div>
             <button class="status-modal-close" onclick="closeTestStatus()" aria-label="Хаах">✕</button>
         </div>
-        <div id="statusContent"></div>
+        <div class="status-split-container">
+            <div class="status-left-pane" id="statusLeftContent"></div>
+            <div class="status-right-pane">
+                <div class="pane-title">📸 Сурагчийн бөглөсөн эх зураг</div>
+                <img id="statusRightImage" src="" alt="Сурагчийн тест">
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     let rowCount = 0;
+
+    function autoDetectQuestionCount() {
+        const text = document.getElementById('correctAnswers').value.trim();
+        const modeSpan = document.getElementById('detectionMode');
+        
+        if (!text) {
+            document.getElementById('maxScore').value = 0;
+            modeSpan.innerText = "(Хариулт оруулаагүй үед AI зураг бүрээр бие даан тоолно)";
+            recalculateAll();
+            return;
+        }
+
+        modeSpan.innerText = "(Текстээс автоматаар тоолсон)";
+        const matches = text.match(/(?:\r?\n|^|\s)(\d+)(?:\.|\-|\)|\s)/g);
+        
+        let count = 0;
+        if (matches) {
+            const numbers = matches.map(m => parseInt(m.match(/\d+/)[0]));
+            count = Math.max(...numbers);
+        } else {
+            const items = text.split(/[\s,;\n]+/).filter(i => i.trim().length > 0);
+            count = items.length;
+        }
+
+        document.getElementById('maxScore').value = count > 0 ? count : 0;
+        recalculateAll();
+    }
 
     function addRow() {
         rowCount++;
@@ -323,6 +367,8 @@
             </td>
             <input type="hidden" id="answers-${rowCount}" value="">
             <input type="hidden" id="studentAns-${rowCount}" value="">
+            <input type="hidden" id="aiGeneratedKeys-${rowCount}" value="">
+            <input type="hidden" id="customMaxScore-${rowCount}" value="">
         `;
         
         tbody.appendChild(tr);
@@ -341,7 +387,11 @@
     }
 
     function calculatePercent(id) {
-        const maxScore = parseFloat(document.getElementById('maxScore').value) || 1;
+        let maxScore = parseFloat(document.getElementById('maxScore').value);
+        if (maxScore === 0 || !maxScore) {
+            maxScore = parseFloat(document.getElementById(`customMaxScore-${id}`).value) || 1;
+        }
+
         const scoreInput = document.getElementById(`score-${id}`);
         let score = parseFloat(scoreInput.value) || 0;
 
@@ -394,7 +444,7 @@
     async function analyzeImage(id) {
         const apiKey = document.getElementById('apiKey').value.trim();
         const correctAnswers = document.getElementById('correctAnswers').value.trim();
-        const maxScore = document.getElementById('maxScore').value;
+        let maxScore = document.getElementById('maxScore').value;
         const fileInput = document.getElementById(`file-${id}`);
         const statusDiv = document.getElementById(`status-${id}`);
 
@@ -410,27 +460,37 @@
         statusDiv.innerText = "⏳ AI засаж байна...";
         statusDiv.style.color = "#d35400";
 
+        let promptGuide = "";
+        if (correctAnswers && maxScore > 0) {
+            promptGuide = `Нийт байж болох хамгийн их оноо: ${maxScore}. Энэхүү багшийн бэлдсэн зөв хариултын дагуу шалгаарай: ${correctAnswers}`;
+        } else {
+            promptGuide = `Багш зөв хариултын түлхүүр өгөөгүй байна. Та зургийг маш сайн харж, нийт хэдэн асуулт байгааг өөрөө тоолж тогтооно уу. Мөн асуулт бүрийн зөв хариултыг та өөрөө шинжлэх ухааны үндэслэлтэйгээр тодорхойлж зөв хариултын түлхүүрийг өөрөө үүсгээрэй.`;
+        }
+
         try {
             const imagePart = await fileToGenerativePart(fileInput.files[0]);
             
             const prompt = `
                 Та багшийн туслах AI байна. Өгөгдсөн цаасан тестийн зургийг маш сайн шинжилж үзээд дараах даалгаврыг гүйцэтгэнэ үү.
                 
-                Тестийн зөв хариултуудын загвар: ${correctAnswers}
-                Нийт байж болох хамгийн их оноо: ${maxScore}
+                Удирдамж:
+                ${promptGuide}
 
                 Даалгавар:
-                1. Зураг дээрээс сурагчийн нэрийг олж тогтоох (Хэрэв нэр байхгүй эсвэл уншигдахгүй бол "Тодорхойгүй" гэх).
-                2. Сурагчийн тэмдэглэсэн эсвэл бичсэн хариултуудыг зөв хариулттай тулгаж, хэдэн оноо авсныг тооцоолох.
-                3. Асуулт бүрийн статусыг хай: зөв (O) эсвэл буруу (X). Хэрэв хариулаагүй бол (X) гэх.
-                4. Сурагчийн сонгосон хариултыг олж (A/B/C/D эсвэл хариулаагүй бол "Хоосон") бүртгэх.
+                1. Зураг дээрээс сурагчийн нэрийг олж тогтоох (Хэрэв байхгүй бол "Тодорхойгүй" гэх).
+                2. Нийт асуултын тоог гаргах.
+                3. Сурагчийн тэмдэглэсэн эсвэл бичсэн хариултуудыг олж бүртгэх (A/B/C/D эсвэл хариулаагүй бол "Хоосон").
+                4. Хэрэв та өөрөө зөв хариултын түлхүүр үүсгэсэн бол түүнийгээ "1. A\\n2. B\\n3. C" хэлбэрийн жагсаалт болгон буцаана уу.
+                5. Зөв хариулттай тулгаж, сурагчийн авсан оноо болон асуулт бүрийн статусыг (Зөв бол O, Буруу бол X) гаргах.
                 
                 ХАРИУГ ЗӨВХӨН дараах JSON форматаар буцаагаарай, өөр ямар ч илүү текст битгий бич:
                 {
                     "student_name": "Олсон сурагчийн нэр",
-                    "score_earned": авсан онооны тоо,
+                    "total_questions_found": зургнаас олдсон нийт асуултын тоо (тоо хэлбэрээр),
+                    "score_earned": сурагчийн авсан онооны тоо,
                     "question_status": "OXOXOXOXOO",
-                    "student_answers": ["B", "B", "B", "D", "A", "B", "B", "Хоосон", "B", "B"]
+                    "student_answers": ["B", "B", "B", "D", "A"],
+                    "ai_generated_correct_keys": "1. A\\n2. B\\n3. C" (хэрэв багш хариулт өгөөгүй бол таны зохиосон зөв хариултын жагсаалт, өгсөн байсан бол хоосон үлдээж болно)
                 }
             `;
 
@@ -458,7 +518,12 @@
             }
             
             document.getElementById(`score-${id}`).value = data.score_earned;
+            document.getElementById(`customMaxScore-${id}`).value = data.total_questions_found;
             
+            if (!maxScore || maxScore == 0) {
+                document.getElementById('maxScore').value = data.total_questions_found;
+            }
+
             if (data.question_status) {
                 const cleanStatus = data.question_status.replace(/\s/g, '');
                 document.getElementById(`answers-${id}`).value = cleanStatus;
@@ -467,10 +532,14 @@
             if (data.student_answers) {
                 document.getElementById(`studentAns-${id}`).value = JSON.stringify(data.student_answers);
             }
+
+            if (data.ai_generated_correct_keys) {
+                document.getElementById(`aiGeneratedKeys-${id}`).value = data.ai_generated_correct_keys;
+            }
             
             calculatePercent(id);
 
-            statusDiv.innerText = "✅ Амжилттай заслаа!";
+            statusDiv.innerText = `✅ Амжилталтай! (${data.total_questions_found} тест)`;
             statusDiv.style.color = "#27ae60";
 
         } catch (error) {
@@ -488,19 +557,20 @@
             return;
         }
 
-        const maxScore = document.getElementById('maxScore').value;
         const data = [
-            ["Тестийн нийт оноо:", maxScore, "", ""],
-            [],
-            ["№", "Сурагчийн овог нэр", "Авсан оноо", "Хувь (%)"]
+            ["№", "Сурагчийн овог нэр", "Авсан оноо", "Нийт оноо", "Хувь (%)"]
         ];
 
         rows.forEach((row, index) => {
             const id = row.id.split('-')[1];
             const name = document.getElementById(`name-${id}`).value || `Сурагч ${index + 1}`;
             const score = document.getElementById(`score-${id}`).value || 0;
+            let maxScore = parseFloat(document.getElementById('maxScore').value);
+            if (!maxScore || maxScore === 0) {
+                maxScore = parseFloat(document.getElementById(`customMaxScore-${id}`).value) || 0;
+            }
             const percent = document.getElementById(`percent-${id}`).innerText;
-            data.push([index + 1, name, parseFloat(score), percent]);
+            data.push([index + 1, name, parseFloat(score), maxScore, percent]);
         });
 
         const worksheet = XLSX.utils.aoa_to_sheet(data);
@@ -524,7 +594,7 @@
             return;
         }
         
-        previewTitle.textContent = `${studentName} - Тестийн Comic`;
+        previewTitle.textContent = `${studentName} - Тестийн зураг`;
         previewImage.src = preview.src;
         document.getElementById('imagePreviewModal').classList.add('active');
     }
@@ -535,13 +605,27 @@
     }
 
     function showTestStatus(id) {
-        const correctAnswers = document.getElementById('correctAnswers').value.trim();
+        const previewImg = document.getElementById(`preview-${id}`);
+        const globalCorrectAnswers = document.getElementById('correctAnswers').value.trim();
+        const aiGeneratedKeys = document.getElementById(`aiGeneratedKeys-${id}`).value;
         const studentName = document.getElementById(`name-${id}`).value || `Сурагч ${id}`;
         const score = document.getElementById(`score-${id}`).value || 0;
-        const maxScore = document.getElementById('maxScore').value;
+        
+        let maxScore = parseFloat(document.getElementById('maxScore').value);
+        if (!maxScore || maxScore === 0) {
+            maxScore = parseFloat(document.getElementById(`customMaxScore-${id}`).value) || 0;
+        }
+
         const questionStatus = document.getElementById(`answers-${id}`).value;
         const studentAnsRaw = document.getElementById(`studentAns-${id}`).value;
         
+        if (previewImg && previewImg.src && previewImg.style.display !== 'none') {
+            document.getElementById('statusRightImage').src = previewImg.src;
+            document.getElementById('statusRightImage').style.display = 'block';
+        } else {
+            document.getElementById('statusRightImage').style.display = 'none';
+        }
+
         let studentAnswersArray = [];
         if (studentAnsRaw) {
             try {
@@ -549,18 +633,32 @@
             } catch(e) { console.error(e); }
         }
         
-        if (!correctAnswers) {
-            alert('Эхлээд зөв хариултуудыг оруулна уу!');
+        let finalKeys = globalCorrectAnswers;
+        let keySourceTitle = "📋 Багшаас оруулсан зөв хариултууд (Хөндлөн):";
+        if (!finalKeys && aiGeneratedKeys) {
+            finalKeys = aiGeneratedKeys;
+            keySourceTitle = "🤖 AI-аас автоматаар үүсгэсэн зөв хариултын түлхүүр (Хөндлөн):";
+        }
+
+        if (!finalKeys) {
+            alert('Энэ сурагчийн тест хараахан AI-аар шалгагдаагүй байна эсвэл зураг оруулна уу!');
             return;
         }
         
-        const answerLines = correctAnswers.split('\n').filter(line => line.trim().length > 0);
-        
-        let answerListHtml = '<ul class="answer-list">';
-        answerLines.forEach(line => {
-            answerListHtml += `<li>${line}</li>`;
+        // ЗӨВ ХАРИУЛТЫН ТҮЛХҮҮРҮҮДИЙГ ХӨНДЛӨН БОЛГОХ ЛОГИК
+        // Ньюлайн эсвэл таслалаар салгаад массив болгох
+        let answerItems = [];
+        if (globalCorrectAnswers) {
+            answerItems = finalKeys.split(/[\n,;]+/).filter(item => item.trim().length > 0);
+        } else {
+            answerItems = finalKeys.split('\n').filter(line => line.trim().length > 0);
+        }
+
+        let answerListHorizontalHtml = '<div class="answer-key-horizontal">';
+        answerItems.forEach(item => {
+            answerListHorizontalHtml += `<div class="answer-key-item">${item.trim()}</div>`;
         });
-        answerListHtml += '</ul>';
+        answerListHorizontalHtml += '</div>';
         
         let questionStatusHtml = '';
         if (questionStatus && questionStatus.length > 0) {
@@ -575,14 +673,13 @@
                 const borderColor = isCorrect ? '#c3e6cb' : '#f5c6cb';
                 const textColor = isCorrect ? '#155724' : '#721c24';
                 
-                // Сурагчийн тэмдэглэсэн хариултыг массив дотроос олох
                 const chosenAns = studentAnswersArray[i] ? studentAnswersArray[i] : "-";
                 
                 questionStatusHtml += `
                     <div style="padding: 10px 5px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px; text-align: center; font-weight: bold;">
                         <div style="font-size: 20px; margin-bottom: 4px;">${icon}</div>
                         <div style="font-size: 13px; color: ${textColor};">${i + 1}-р асуулт</div>
-                        <div style="font-size: 12px; margin-top: 5px; background: rgba(255,255,255,0.6); padding: 2px; border-radius: 4px;">Сонгосон: <span style="font-size:14px; color:#2c3e50;">${chosenAns}</span></div>
+                        <div style="font-size: 11px; margin-top: 5px; background: rgba(255,255,255,0.6); padding: 2px; border-radius: 4px;">Сонгосон: <span style="font-size:13px; color:#2c3e50;">${chosenAns}</span></div>
                     </div>
                 `;
             }
@@ -590,25 +687,23 @@
             questionStatusHtml += '</div></div>';
         }
         
-        const statusContent = `
-            <div style="margin-bottom: 16px;">
-                <strong>Сурагч:</strong> ${studentName}
+        const leftContentHtml = `
+            <div class="pane-title">📊 Шалгалтын үр дүнгийн мэдээлэл</div>
+            <div style="margin-bottom: 12px; font-size: 16px;">
+                <strong>Сурагч:</strong> <span style="color: #2980b9; font-weight:bold;">${studentName}</span>
             </div>
-            <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #2196F3;">
-                <strong>Оноо:</strong> ${score} / ${maxScore} (${((score / maxScore) * 100).toFixed(1)}%)
+            <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #2196F3; font-size: 15px;">
+                <strong>Авсан оноо:</strong> <span style="font-size: 18px; color: #2c3e50;">${score} / ${maxScore}</span> (${maxScore > 0 ? ((score / maxScore) * 100).toFixed(1) : 0}%)
             </div>
             ${questionStatusHtml}
             <div id="wrongQuestionsDiv" style="margin-bottom: 16px;"></div>
             <div style="margin-bottom: 12px;">
-                <strong style="display: block; margin-bottom: 8px;">📋 Зөв хариултуудын жагсаалт:</strong>
-                <div class="answer-key">${answerListHtml}</div>
-            </div>
-            <div style="padding: 12px; background: #fef5e7; border-radius: 6px; border-left: 4px solid #f39c12; font-size: 13px;">
-                <strong>💡 Зөвлөмж:</strong> Сурагчийн хариултыг дээрх жагсаалттай хянаж үзнэ үү.
+                <strong style="display: block; margin-bottom: 4px;">${keySourceTitle}</strong>
+                ${answerListHorizontalHtml}
             </div>
         `;
         
-        document.getElementById('statusContent').innerHTML = statusContent;
+        document.getElementById('statusLeftContent').innerHTML = leftContentHtml;
         
         if (questionStatus && questionStatus.length > 0) {
             const wrongQuestions = [];
@@ -625,7 +720,7 @@
                 wrongDiv.innerHTML = `
                     <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; border-left: 4px solid #ff6b6b;">
                         <strong style="color: #856404;">⚠️ Алдаа гаргасан асуултууд:</strong>
-                        <div style="color: #856404; margin-top: 8px; font-size: 14px;">
+                        <div style="color: #856404; margin-top: 6px; font-size: 13px;">
                             <strong>Нийт ${wrongQuestions.length} асуулт дээр алдсан:</strong> ${wrongQuestions.join(', ')}-р асуултууд
                         </div>
                     </div>
@@ -633,6 +728,7 @@
             }
         }
         
+        document.getElementById('statusHeaderTitle').innerText = `📊 ${studentName} - Тестийн дүн хянах цонх`;
         document.getElementById('statusModal').classList.add('active');
     }
 
