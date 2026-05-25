@@ -786,7 +786,7 @@
     <!-- Stepper -->
     <div class="stepper" id="stepper"></div>
     <a href="../Index.html" class="home-btn">
-      <i class="fa-solid fa-house"></i> Нүүр хуудас
+        <i class="fa-solid fa-house"></i> Нүүр хуудас
     </a>
 
     <!-- Step 0: Info -->
@@ -941,6 +941,21 @@
           </div>
 
           <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(this)">
+
+          <div class="field" style="margin-top:20px">
+            <label>Google Gemini API Key</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input type="password" id="apiKey" placeholder="AIza..." style="flex:1;min-width:220px;font-family:monospace;font-size:.8rem">
+              <button type="button" class="btn btn-secondary" style="padding:10px 16px;height:auto;white-space:nowrap;" onclick="pasteApiKey()">API key байрлуулах</button>
+            </div>
+            <p class="hint">🔑 Тогтмол API key-г автоматаар оруулахын тулд "API key байрлуулах" товчийг дарна уу. Хэрвээ өөр API key ашиглах бол өөр key-г шууд оруулна.</p>
+          </div>
+
+          <div class="field" style="margin-top:16px">
+            <label>AI Prompt / хуулсан prompt</label>
+            <textarea id="customPrompt" placeholder="Энд хуулсан prompt-oo тавиад анализ хийх боломжтой..." style="width:100%;min-height:140px;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:monospace;font-size:.85rem;line-height:1.4"></textarea>
+            <p class="hint">Хэрвээ prompt байвал энэ талбар руу хуулна уу. Хоосон бол систем автоматаар prompt үүсгэн анализ хийнэ.</p>
+          </div>
 
         </div>
 
@@ -1606,8 +1621,10 @@
       reader.readAsArrayBuffer(file);
     }
     function checkAnalyzeBtn() {
-      document.getElementById('analyzeBtn').disabled = !uploadedFile;
+      const key = document.getElementById('apiKey').value.trim();
+      document.getElementById('analyzeBtn').disabled = !uploadedFile || !key;
     }
+    document.getElementById('apiKey').addEventListener('input', checkAnalyzeBtn);
 
     function getStudentTotal(s) {
       return s.scores.reduce((a, b) => a + b, 0);
@@ -2046,19 +2063,144 @@
     }
 
     // ── Step 4: Analysis ────────────────────────────────────────────────────────
-    function doAnalysis() {
-      goPanel(3);
+    async function doAnalysis() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('API key оруулна уу');
+        return;
+      }
 
-      document.getElementById('analysisLoading').style.display = 'none';
+      const customPrompt = document.getElementById('customPrompt')?.value.trim();
+      const prompt = customPrompt || buildAIPrompt();
+
+      goPanel(3);
+      document.getElementById('analysisLoading').style.display = 'block';
       document.getElementById('analysisError').style.display = 'none';
       document.getElementById('analysisResult').innerHTML = '';
-      document.getElementById('pdfBar').style.display = 'flex';
+      document.getElementById('pdfBar').style.display = 'none';
       document.getElementById('retryBtn').style.display = 'none';
 
-
       renderDashboard();
-
       window.lastAnalysisHTML = document.getElementById('chartArea').innerHTML;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            contents: [{parts: [{text: prompt}]}],
+            generationConfig: {maxOutputTokens: 3000, temperature: 0.3}
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const text = json.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || 'Хариу ирсэнгүй.';
+        renderAnalysis(text);
+      } catch (e) {
+        document.getElementById('analysisError').textContent = 'Алдаа: ' + e.message;
+        document.getElementById('analysisError').style.display = 'block';
+        document.getElementById('retryBtn').style.display = 'inline-flex';
+      } finally {
+        document.getElementById('analysisLoading').style.display = 'none';
+      }
+    }
+
+    function buildAIPrompt() {
+      const school = document.getElementById('schoolName').value || 'Сургууль';
+      const grade = document.getElementById('grade').value || 'Анги';
+      const subject = document.getElementById('subjectName').value || 'Хичээл';
+      const reportDate = document.getElementById('reportDate').value || 'Огноо оруулаагүй';
+      const teacherName = document.getElementById('teacherName').value || 'Багшийн нэр оруулаагүй';
+
+      const totalScore = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
+
+      const studentRows = studentData.map(s => {
+        const total = getStudentTotal(s);
+        const percent = getPercent(total, totalScore).toFixed(1);
+        return `${s.name}: ${total}/${totalScore} (${percent}%)`;
+      }).join('\n');
+
+      const taskRows = tasks.map((t, i) => {
+        const maxScore = parseFloat(t.score) || 0;
+        const sum = studentData.reduce((a, s) => a + (s.scores[i] || 0), 0);
+        const percent = studentData.length
+          ? ((sum / (studentData.length * maxScore)) * 100).toFixed(1)
+          : 0;
+
+        return `Даалгавар ${t.label || i + 1}: авах оноо ${maxScore}, гүйцэтгэл ${percent}%, хүндрэл ${t.difficulty}, таксаноми ${t.level}, шалгуур: ${t.criterion}`;
+      }).join('\n');
+
+      const mistakeRows = studentData.map(s => {
+        const missed = tasks.map((t, i) => {
+          const score = Number(s.scores[i]) || 0;
+          const maxScore = Number(t.score) || 0;
+
+          if (score >= maxScore) return null;
+
+          return `${t.label || i + 1} (${score}/${maxScore}, ${t.criterion}, ${t.level}, ${t.difficulty})`;
+        }).filter(Boolean);
+
+        return `${s.name}: ${missed.length ? missed.join('; ') : 'алдаагүй'}`;
+      }).join('\n');
+
+      const materialText = examMaterialFile
+        ? `Хавсаргасан шалгалтын материал: ${examMaterialFile.name}`
+        : 'Шалгалтын материал файл хавсаргаагүй.';
+
+      return `Та ерөнхий боловсролын сургуулийн үнэлгээ, оношилгооны туршлагатай боловсролын судлаач, арга зүйч багшийн дүрээр ажиллана уу.
+
+Доорх өгөгдөл дээр үндэслэн багшид зориулсан дэлгэрэнгүй, мэргэжлийн, хэрэгжүүлэх боломжтой шалгалтын анализ бичнэ үү.
+
+Зорилго:
+1. Ангийн ерөнхий гүйцэтгэлийг оношлох
+2. Даалгавар бүрийн гүйцэтгэлийг тайлбарлах
+3. Таксаномийн түвшний эзэмшлийг дүгнэх
+4. Үнэлгээний шалгуурын сул болон сайн талыг тодорхойлох
+5. Эрсдэлтэй сурагчдад зориулсан зөвлөмж гаргах
+6. Дараагийн хичээл, давтлага, ялгаатай даалгаврын санал өгөх
+7. Тайланг багш шууд ашиглаж болохуйц албан, ойлгомжтой хэлбэрээр бичих
+
+Тайлангийн мэдээлэл:
+- Сургууль: ${school}
+- Анги: ${grade}
+- Хичээл: ${subject}
+- Тайлан гаргасан огноо: ${reportDate}
+- Тайлан гаргасан багш: ${teacherName}
+- Нийт авах оноо: ${totalScore}
+- ${materialText}
+
+Сурагчдын нийт гүйцэтгэл:
+${studentRows}
+
+Даалгавар бүрийн бүтэц ба гүйцэтгэл:
+${taskRows}
+
+Сурагч бүрийн оноо алдсан даалгавар:
+${mistakeRows}
+
+Гарах тайлангийн бүтэц:
+1. Ерөнхий дүгнэлт
+2. Ангийн гүйцэтгэлийн оношилгоо
+3. Даалгавар бүрийн шинжилгээ
+4. Таксаномийн түвшний анализ
+5. Үнэлгээний шалгуурын анализ
+6. Эрсдэлтэй сурагчдын оношилгоо
+7. Дараагийн хичээлд ашиглах арга зүйн зөвлөмж
+8. Сурагчдад ялгаатай даалгавар өгөх санал
+9. Богино хугацааны сайжруулах төлөвлөгөө
+
+Анхаарах зүйл:
+- Ерөнхий, хоосон зөвлөмж бүү бич.
+- Дээрх өгөгдөлд тулгуурлан бич.
+- Багш шууд хэрэглэж болох өгүүлбэрээр бич.
+- Монгол хэлээр бич.
+`.trim();
     }
 
     function renderAnalysis(text) {
@@ -2212,98 +2354,8 @@
     }
 
     function generateAIPrompt() {
-      const school = document.getElementById('schoolName').value || 'Сургууль';
-      const grade = document.getElementById('grade').value || 'Анги';
-      const subject = document.getElementById('subjectName').value || 'Хичээл';
-      const reportDate = document.getElementById('reportDate').value || 'Огноо оруулаагүй';
-      const teacherName = document.getElementById('teacherName').value || 'Багшийн нэр оруулаагүй';
-
-      const totalScore = tasks.reduce((s, t) => s + (parseFloat(t.score) || 0), 0);
-
-      const studentRows = studentData.map(s => {
-        const total = getStudentTotal(s);
-        const percent = getPercent(total, totalScore).toFixed(1);
-
-        return `${s.name}: ${total}/${totalScore} (${percent}%)`;
-      }).join('\n');
-
-      const taskRows = tasks.map((t, i) => {
-        const maxScore = parseFloat(t.score) || 0;
-        const sum = studentData.reduce((a, s) => a + (s.scores[i] || 0), 0);
-        const percent = studentData.length
-          ? ((sum / (studentData.length * maxScore)) * 100).toFixed(1)
-          : 0;
-
-        return `Даалгавар ${t.label || i + 1}: авах оноо ${maxScore}, гүйцэтгэл ${percent}%, хүндрэл ${t.difficulty}, таксаноми ${t.level}, шалгуур: ${t.criterion}`;
-      }).join('\n');
-
-      const mistakeRows = studentData.map(s => {
-        const missed = tasks.map((t, i) => {
-          const score = Number(s.scores[i]) || 0;
-          const maxScore = Number(t.score) || 0;
-
-          if (score >= maxScore) return null;
-
-          return `${t.label || i + 1} (${score}/${maxScore}, ${t.criterion}, ${t.level}, ${t.difficulty})`;
-        }).filter(Boolean);
-
-        return `${s.name}: ${missed.length ? missed.join('; ') : 'алдаагүй'}`;
-      }).join('\n');
-
-      const materialText = examMaterialFile
-        ? `Хавсаргасан шалгалтын материал: ${examMaterialFile.name}`
-        : 'Шалгалтын материал файл хавсаргаагүй.';
-
-      const prompt = `
-Та ерөнхий боловсролын сургуулийн үнэлгээ, оношилгооны туршлагатай боловсролын судлаач, арга зүйч багшийн дүрээр ажиллана уу.
-
-Доорх өгөгдөл дээр үндэслэн багшид зориулсан дэлгэрэнгүй, мэргэжлийн, хэрэгжүүлэх боломжтой шалгалтын анализ бичнэ үү.
-
-Зорилго:
-1. Ангийн ерөнхий гүйцэтгэлийг оношлох
-2. Даалгавар бүрийн гүйцэтгэлийг тайлбарлах
-3. Таксаномийн түвшний эзэмшлийг дүгнэх
-4. Үнэлгээний шалгуурын сул болон сайн талыг тодорхойлох
-5. Эрсдэлтэй сурагчдад зориулсан зөвлөмж гаргах
-6. Дараагийн хичээл, давтлага, ялгаатай даалгаврын санал өгөх
-7. Тайланг багш шууд ашиглаж болохуйц албан, ойлгомжтой хэлбэрээр бичих
-
-Тайлангийн мэдээлэл:
-- Сургууль: ${school}
-- Анги: ${grade}
-- Хичээл: ${subject}
-- Тайлан гаргасан огноо: ${reportDate}
-- Тайлан гаргасан багш: ${teacherName}
-- Нийт авах оноо: ${totalScore}
-- ${materialText}
-
-Сурагчдын нийт гүйцэтгэл:
-${studentRows}
-
-Даалгавар бүрийн бүтэц ба гүйцэтгэл:
-${taskRows}
-
-Сурагч бүрийн оноо алдсан даалгавар:
-${mistakeRows}
-
-Гарах тайлангийн бүтэц:
-1. Ерөнхий дүгнэлт
-2. Ангийн гүйцэтгэлийн оношилгоо
-3. Даалгавар бүрийн шинжилгээ
-4. Таксаномийн түвшний анализ
-5. Үнэлгээний шалгуурын анализ
-6. Эрсдэлтэй сурагчдын оношилгоо
-7. Дараагийн хичээлд ашиглах арга зүйн зөвлөмж
-8. Сурагчдад ялгаатай даалгавар өгөх санал
-9. Богино хугацааны сайжруулах төлөвлөгөө
-
-Анхаарах зүйл:
-- Ерөнхий, хоосон зөвлөмж бүү бич.
-- Дээрх өгөгдөлд тулгуурлан бич.
-- Багш шууд хэрэглэж болох өгүүлбэрээр бич.
-- Монгол хэлээр бич.
-`.trim();
-
+      const customPrompt = document.getElementById('customPrompt')?.value.trim();
+      const prompt = customPrompt || buildAIPrompt();
       document.getElementById('aiPromptText').value = prompt;
       document.getElementById('aiPromptBox').style.display = 'block';
       document.getElementById('aiPromptBox').scrollIntoView({ behavior: 'smooth' });
@@ -2314,6 +2366,14 @@ ${mistakeRows}
       text.select();
       document.execCommand('copy');
       alert('AI prompt хуулагдлаа.');
+    }
+
+    function pasteApiKey() {
+      const key = 'AIzaSyCBGnsETaCChkSkT8WFlHGDaKMQTI9oUM0';
+      const input = document.getElementById('apiKey');
+      input.value = key;
+      checkAnalyzeBtn();
+      alert('API key талбарт байрлууллаа.');
     }
 
     function downloadPDFReport() {
