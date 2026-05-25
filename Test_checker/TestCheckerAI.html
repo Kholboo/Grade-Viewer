@@ -99,6 +99,136 @@
         .btn-delete:hover { background: #c0392b; }
         .preview-img { max-width: 80px; max-height: 80px; border-radius: 4px; margin-top: 5px; display: block; margin-left: auto; margin-right: auto;}
         .status-text { font-size: 12px; font-weight: bold; color: #7f8c8d; }
+        /* Preview Modal Styles */
+        .preview-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .preview-modal.active {
+            display: flex;
+        }
+        .preview-modal-content {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .preview-modal-header {
+            position: sticky;
+            top: 0;
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .preview-modal-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        .preview-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .preview-modal-close:hover {
+            color: #000;
+        }
+        .preview-modal-body {
+            padding: 20px;
+            text-align: center;
+        }
+        .preview-modal-body img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+        }
+        .preview-image-clickable {
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .preview-image-clickable:hover {
+            opacity: 0.8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        /* Status Modal Styles */
+        .status-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            padding: 20px;
+        }
+        .status-modal.active {
+            display: flex;
+        }
+        .status-modal-content {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+        }
+        .status-modal-header {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .status-modal-close:hover {
+            color: #000;
+        }
+        .answer-key {
+            background: #f0f4f8;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            border-left: 4px solid #4A90E2;
+        }
+        .answer-list {
+            list-style: none;
+            padding: 0;
+        }
+        .answer-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .answer-list li:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -134,7 +264,7 @@
             </tr>
         </thead>
         <tbody id="tableBody">
-            </tbody>
+        </tbody>
     </table>
 
     <div class="btn-group">
@@ -143,10 +273,31 @@
     </div>
 </div>
 
+<div id="imagePreviewModal" class="preview-modal" onclick="closeImagePreview(event)">
+    <div class="preview-modal-content" onclick="event.stopPropagation()">
+        <div class="preview-modal-header">
+            <div class="preview-modal-title" id="previewTitle">Тестийн зургийг томоор харах</div>
+            <button class="preview-modal-close" onclick="closeImagePreview()" aria-label="Хаах">✕</button>
+        </div>
+        <div class="preview-modal-body">
+            <img id="previewImage" alt="Test image preview" />
+        </div>
+    </div>
+</div>
+
+<div id="statusModal" class="status-modal" onclick="closeTestStatus(event)">
+    <div class="status-modal-content" onclick="event.stopPropagation()">
+        <div class="status-modal-header">
+            <div>Тестийн зөв/буруу статус</div>
+            <button class="status-modal-close" onclick="closeTestStatus()" aria-label="Хаах">✕</button>
+        </div>
+        <div id="statusContent"></div>
+    </div>
+</div>
+
 <script>
     let rowCount = 0;
 
-    // Шинэ мөр нэмэх функц
     function addRow() {
         rowCount++;
         const tbody = document.getElementById('tableBody');
@@ -158,7 +309,7 @@
             <td><input type="text" placeholder="Сурагчийн нэр" class="student-name" id="name-${rowCount}"></td>
             <td>
                 <input type="file" accept="image/*" onchange="previewImage(this, ${rowCount})" id="file-${rowCount}">
-                <img id="preview-${rowCount}" class="preview-img" style="display:none;">
+                <img id="preview-${rowCount}" class="preview-img preview-image-clickable" style="display:none;" onclick="openImagePreview(${rowCount})" title="Том хэмжээтэй харах дарна уу">
             </td>
             <td>
                 <input type="number" value="0" min="0" class="student-score" id="score-${rowCount}" oninput="calculatePercent(${rowCount})">
@@ -167,14 +318,16 @@
             <td id="percent-${rowCount}" class="student-percent" style="font-weight:bold;">0%</td>
             <td>
                 <button class="btn btn-ai" onclick="analyzeImage(${rowCount})">🤖 AI Шалгах</button>
+                <button class="btn btn-ai" onclick="showTestStatus(${rowCount})" title="Тестийн зөв/буруу статус харуулах" style="background: #16a085; margin-top:5px;">📋 Статус</button>
                 <button class="btn btn-delete" onclick="deleteRow(${rowCount})" style="margin-top:5px;">Устгах</button>
             </td>
+            <input type="hidden" id="answers-${rowCount}" value="">
+            <input type="hidden" id="studentAns-${rowCount}" value="">
         `;
         
         tbody.appendChild(tr);
     }
 
-    // Зургийг урьдчилж харах
     function previewImage(input, id) {
         const preview = document.getElementById(`preview-${id}`);
         if (input.files && input.files[0]) {
@@ -187,7 +340,6 @@
         }
     }
 
-    // Хувь бодох
     function calculatePercent(id) {
         const maxScore = parseFloat(document.getElementById('maxScore').value) || 1;
         const scoreInput = document.getElementById(`score-${id}`);
@@ -222,7 +374,6 @@
         });
     }
 
-    // Зургийг Base64 формат руу хөрвүүлэх туслах функц
     function fileToGenerativePart(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -240,7 +391,6 @@
         });
     }
 
-    // Google Gemini AI ашиглан зураг уншиж шалгах үндсэн функц
     async function analyzeImage(id) {
         const apiKey = document.getElementById('apiKey').value.trim();
         const correctAnswers = document.getElementById('correctAnswers').value.trim();
@@ -263,7 +413,6 @@
         try {
             const imagePart = await fileToGenerativePart(fileInput.files[0]);
             
-            // AI-д өгөх удирдамж зааварчилгаа
             const prompt = `
                 Та багшийн туслах AI байна. Өгөгдсөн цаасан тестийн зургийг маш сайн шинжилж үзээд дараах даалгаврыг гүйцэтгэнэ үү.
                 
@@ -272,16 +421,19 @@
 
                 Даалгавар:
                 1. Зураг дээрээс сурагчийн нэрийг олж тогтоох (Хэрэв нэр байхгүй эсвэл уншигдахгүй бол "Тодорхойгүй" гэх).
-                2. Сурагчийн тэмдэглэсэн эсвэл бичсэн хариултуудыг зөв хариулттай тулгаж, хэдэн оноо авсныг тооцоолох. Хэрэв гар аргаар зассан тэмдэглэгээ (багшийн зөв, буруу гэсэн зураас) байвал түүнийг ашиглаж болно.
+                2. Сурагчийн тэмдэглэсэн эсвэл бичсэн хариултуудыг зөв хариулттай тулгаж, хэдэн оноо авсныг тооцоолох.
+                3. Асуулт бүрийн статусыг хай: зөв (O) эсвэл буруу (X). Хэрэв хариулаагүй бол (X) гэх.
+                4. Сурагчийн сонгосон хариултыг олж (A/B/C/D эсвэл хариулаагүй бол "Хоосон") бүртгэх.
                 
                 ХАРИУГ ЗӨВХӨН дараах JSON форматаар буцаагаарай, өөр ямар ч илүү текст битгий бич:
                 {
                     "student_name": "Олсон сурагчийн нэр",
-                    "score_earned": авсан онооны тоо (бүхэл эсвэл бутархай тоо байж болно)
+                    "score_earned": авсан онооны тоо,
+                    "question_status": "OXOXOXOXOO",
+                    "student_answers": ["B", "B", "B", "D", "A", "B", "B", "Хоосон", "B", "B"]
                 }
             `;
 
-            // Gemini API руу хүсэлт илгээх (Gemini 2.5 Flash модель ашиглав)
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -298,16 +450,24 @@
             const result = await response.json();
             const aiText = result.candidates[0].content.parts[0].text;
             
-            // JSON-ийг цэвэрлэж унших (AI заримдаа ```json ... ``` дотор хариу өгдөг)
             const cleanJson = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
             const data = JSON.parse(cleanJson);
 
-            // Үр дүнг хүснэгтэд оруулах
             if(data.student_name && data.student_name !== "Тодорхойгүй") {
                 document.getElementById(`name-${id}`).value = data.student_name;
             }
             
             document.getElementById(`score-${id}`).value = data.score_earned;
+            
+            if (data.question_status) {
+                const cleanStatus = data.question_status.replace(/\s/g, '');
+                document.getElementById(`answers-${id}`).value = cleanStatus;
+            }
+
+            if (data.student_answers) {
+                document.getElementById(`studentAns-${id}`).value = JSON.stringify(data.student_answers);
+            }
+            
             calculatePercent(id);
 
             statusDiv.innerText = "✅ Амжилттай заслаа!";
@@ -317,11 +477,10 @@
             console.error(error);
             statusDiv.innerText = "❌ Алдаа гарлаа!";
             statusDiv.style.color = "#c0392b";
-            alert("AI зургийг уншиж чадсангүй. Та API түлхүүрээ зөв эсэхийг эсвэл зургийн чанараа шалгана уу.");
+            alert("AI зургийг уншиж чадсангүй.");
         }
     }
 
-    // Excel руу хөрвүүлж татах функц
     function exportToExcel() {
         const rows = document.querySelectorAll('#tableBody tr');
         if (rows.length === 0) {
@@ -350,9 +509,136 @@
         XLSX.writeFile(workbook, "AI_Тестийн_Дүн.xlsx");
     }
 
-    // Эхлээд шууд 1 хоосон мөр үүсгэж харуулна
     window.onload = function() {
         addRow();
+    }
+
+    function openImagePreview(id) {
+        const preview = document.getElementById(`preview-${id}`);
+        const previewImage = document.getElementById('previewImage');
+        const previewTitle = document.getElementById('previewTitle');
+        const studentName = document.getElementById(`name-${id}`).value || `Сурагч ${id}`;
+        
+        if (!preview.src || preview.style.display === 'none') {
+            alert('Таны оруулсан зургийг эхлээд шалгана уу!');
+            return;
+        }
+        
+        previewTitle.textContent = `${studentName} - Тестийн Comic`;
+        previewImage.src = preview.src;
+        document.getElementById('imagePreviewModal').classList.add('active');
+    }
+
+    function closeImagePreview(event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById('imagePreviewModal').classList.remove('active');
+    }
+
+    function showTestStatus(id) {
+        const correctAnswers = document.getElementById('correctAnswers').value.trim();
+        const studentName = document.getElementById(`name-${id}`).value || `Сурагч ${id}`;
+        const score = document.getElementById(`score-${id}`).value || 0;
+        const maxScore = document.getElementById('maxScore').value;
+        const questionStatus = document.getElementById(`answers-${id}`).value;
+        const studentAnsRaw = document.getElementById(`studentAns-${id}`).value;
+        
+        let studentAnswersArray = [];
+        if (studentAnsRaw) {
+            try {
+                studentAnswersArray = JSON.parse(studentAnsRaw);
+            } catch(e) { console.error(e); }
+        }
+        
+        if (!correctAnswers) {
+            alert('Эхлээд зөв хариултуудыг оруулна уу!');
+            return;
+        }
+        
+        const answerLines = correctAnswers.split('\n').filter(line => line.trim().length > 0);
+        
+        let answerListHtml = '<ul class="answer-list">';
+        answerLines.forEach(line => {
+            answerListHtml += `<li>${line}</li>`;
+        });
+        answerListHtml += '</ul>';
+        
+        let questionStatusHtml = '';
+        if (questionStatus && questionStatus.length > 0) {
+            questionStatusHtml = '<div style="margin-bottom: 16px;"><strong style="display: block; margin-bottom: 12px;">✅/❌ Асуулт бүрийн статус ба сурагчийн хариулт:</strong>';
+            questionStatusHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px;">';
+            
+            for (let i = 0; i < questionStatus.length; i++) {
+                const status = questionStatus[i];
+                const isCorrect = status === 'O' || status === 'o';
+                const icon = isCorrect ? '✅' : '❌';
+                const bgColor = isCorrect ? '#d4edda' : '#f8d7da';
+                const borderColor = isCorrect ? '#c3e6cb' : '#f5c6cb';
+                const textColor = isCorrect ? '#155724' : '#721c24';
+                
+                // Сурагчийн тэмдэглэсэн хариултыг массив дотроос олох
+                const chosenAns = studentAnswersArray[i] ? studentAnswersArray[i] : "-";
+                
+                questionStatusHtml += `
+                    <div style="padding: 10px 5px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px; text-align: center; font-weight: bold;">
+                        <div style="font-size: 20px; margin-bottom: 4px;">${icon}</div>
+                        <div style="font-size: 13px; color: ${textColor};">${i + 1}-р асуулт</div>
+                        <div style="font-size: 12px; margin-top: 5px; background: rgba(255,255,255,0.6); padding: 2px; border-radius: 4px;">Сонгосон: <span style="font-size:14px; color:#2c3e50;">${chosenAns}</span></div>
+                    </div>
+                `;
+            }
+            
+            questionStatusHtml += '</div></div>';
+        }
+        
+        const statusContent = `
+            <div style="margin-bottom: 16px;">
+                <strong>Сурагч:</strong> ${studentName}
+            </div>
+            <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #2196F3;">
+                <strong>Оноо:</strong> ${score} / ${maxScore} (${((score / maxScore) * 100).toFixed(1)}%)
+            </div>
+            ${questionStatusHtml}
+            <div id="wrongQuestionsDiv" style="margin-bottom: 16px;"></div>
+            <div style="margin-bottom: 12px;">
+                <strong style="display: block; margin-bottom: 8px;">📋 Зөв хариултуудын жагсаалт:</strong>
+                <div class="answer-key">${answerListHtml}</div>
+            </div>
+            <div style="padding: 12px; background: #fef5e7; border-radius: 6px; border-left: 4px solid #f39c12; font-size: 13px;">
+                <strong>💡 Зөвлөмж:</strong> Сурагчийн хариултыг дээрх жагсаалттай хянаж үзнэ үү.
+            </div>
+        `;
+        
+        document.getElementById('statusContent').innerHTML = statusContent;
+        
+        if (questionStatus && questionStatus.length > 0) {
+            const wrongQuestions = [];
+            for (let i = 0; i < questionStatus.length; i++) {
+                const status = questionStatus[i];
+                const isCorrect = status === 'O' || status === 'o';
+                if (!isCorrect) {
+                    wrongQuestions.push(i + 1);
+                }
+            }
+            
+            if (wrongQuestions.length > 0) {
+                const wrongDiv = document.getElementById('wrongQuestionsDiv');
+                wrongDiv.innerHTML = `
+                    <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; border-left: 4px solid #ff6b6b;">
+                        <strong style="color: #856404;">⚠️ Алдаа гаргасан асуултууд:</strong>
+                        <div style="color: #856404; margin-top: 8px; font-size: 14px;">
+                            <strong>Нийт ${wrongQuestions.length} асуулт дээр алдсан:</strong> ${wrongQuestions.join(', ')}-р асуултууд
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        document.getElementById('statusModal').classList.add('active');
+    }
+
+    function closeTestStatus(event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById('statusModal').classList.remove('active');
     }
 </script>
 
