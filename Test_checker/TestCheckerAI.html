@@ -291,7 +291,7 @@
     <div class="config-section">
         <div class="config-row">
             <label>1. Google Gemini API Key оруулна уу:</label>
-            <input type="password" id="apiKey" class="api-input" placeholder="AI түлхүүрээ энд хуулна уу...">
+            <input type="text" id="apiKey" class="api-input" placeholder="AI түлхүүрээ энд хуулна уу...">
             <span style="font-size: 12px; color: #666;">(<a href="https://aistudio.google.com/" target="_blank">Эндээс үнэгүй авах</a>)</span>
         </div>
         <div>
@@ -592,6 +592,8 @@
                 3. Сурагчийн тэмдэглэсэн эсвэл бичсэн хариултуудыг олж бүртгэх (A/B/C/D эсвэл хариулаагүй бол "Хоосон").
                 4. Хэрэв та өөрөө зөв хариултын түлхүүр үүсгэсэн бол түүнийгээ "1. A\\n2. B\\n3. C" хэлбэрийн жагсаалт болгон буцаана уу.
                 5. Зөв хариулттай тулгаж, сурагчийн авсан нийт оноо болон асуулт бүрийн статусыг (Зөв бол O, Буруу бол X) гаргах.
+                6. question_status-д яг асуултын тоогоор байх ёстой илүү байж болохгүй. Жишээ нь, хэрэв 10 асуулт байвал question_status нь яг 10 тэмдэгттэй байх ёстой (OXOOXOXOOX гэх мэт). Илүү асуулт байхгүй гэдгийг дахин баталгаажуул.
+                7. сурагч тухайн асуултанд хариулаагүй бол тухайн асуултын статусыг X гэж тэмдэглэх ба student_answers хэсэгт "хоосон" гэж бичих.
                 
                 ХАРИУГ ЗӨВХӨН дараах JSON форматаар буцаагаарай, өөр ямар ч илүү текст битгий бич:
                 {
@@ -615,7 +617,23 @@
             });
             contentsParts.push({ text: prompt });
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            // const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: JSON.stringify({
+            //         contents: [{
+            //             parts: contentsParts
+            //         }]
+            //     })
+            // });
+
+            //const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
+
+            //gemma-4-31b-it
+
+            
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -802,7 +820,7 @@
                 const textColor = isCorrect ? '#155724' : '#721c24';
                 
                 const chosenAns = studentAnswersArray[i] ? studentAnswersArray[i] : "-";
-                
+                if (studentAnswersArray[i]) {
                 questionStatusHtml += `
                     <div style="padding: 10px 5px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px; text-align: center; font-weight: bold;">
                         <div style="font-size: 20px; margin-bottom: 4px;">${icon}</div>
@@ -810,6 +828,7 @@
                         <div style="font-size: 11px; margin-top: 5px; background: rgba(255,255,255,0.6); padding: 2px; border-radius: 4px;">Сонгосон: <span style="font-size:13px; color:#2c3e50;">${chosenAns}</span></div>
                     </div>
                 `;
+                }
             }
             
             questionStatusHtml += '</div></div>';
