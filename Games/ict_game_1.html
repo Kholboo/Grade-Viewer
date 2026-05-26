@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cambridge ICT Starters: On Track Challenge</title>
+    <style>
+        :root {
+            --primary: #1a5276;
+            --primary-light: #2e86c1;
+            --success: #27ae60;
+            --danger: #cb4335;
+            --dark: #2c3e50;
+            --light: #f4f6f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ebedef;
+            color: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            max-width: 70%;
+        }
+
+        .stats-hub {
+            text-align: right;
+        }
+
+        .score-box {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .score-box span {
+            color: var(--primary-light);
+        }
+
+        .progress-container {
+            background: #e5e8e8;
+            width: 120px;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            background: var(--primary-light);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .module-badge {
+            background: var(--light);
+            color: var(--primary);
+            border-left: 4px solid var(--primary-light);
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: var(--light);
+            border: 2px solid #d5dbdb;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background: #eaf2f8;
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .option-btn .prefix {
+            font-weight: bold;
+            margin-right: 10px;
+            color: var(--primary-light);
+        }
+
+        .option-btn.correct {
+            background: #e8f8f5;
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: #fdebd0;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .feedback-pane {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .feedback-pane.correct {
+            background: #e8f8f5;
+            border-left: 5px solid var(--success);
+            color: var(--success);
+        }
+
+        .feedback-pane.wrong {
+            background: #fadbd8;
+            border-left: 5px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .hint-text {
+            font-size: 14px;
+            color: #566573;
+            font-style: italic;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .results-screen {
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-title {
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .final-score {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eaeded;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div id="quiz-view">
+            <header>
+                <div>
+                    <h1>Cambridge ICT: On Track Challenge</h1>
+                    <div id="q-counter" style="font-size: 13px; color: #7f8c8d; margin-top: 3px;">Question 1 of 50</div>
+                </div>
+                <div class="stats-hub">
+                    <div class="score-box">Score: <span id="score-display">0</span></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <div class="module-badge" id="module-badge">Documents for a Purpose</div>
+                <div class="question-text" id="question-text">Loading question assets...</div>
+                
+                <div class="options-grid" id="options-container"></div>
+
+                <div class="feedback-pane" id="feedback-pane">
+                    <div class="feedback-title" id="feedback-title">Correct!</div>
+                    <div class="hint-text" id="hint-display">Clue insight details here.</div>
+                </div>
+
+                <div class="controls">
+                    <button class="action-btn" id="next-btn" onclick="handleNextStep()">Submit Answer</button>
+                </div>
+            </main>
+        </div>
+
+        <div id="results-view" class="results-screen">
+            <div class="results-title">Assessment Complete!</div>
+            <div class="final-score" id="final-score-display">0</div>
+            <p style="color: #7f8c8d; margin-bottom: 25px;">Final Scaled Syllabus Performance Index Matrix</p>
+            
+            <div class="summary-card">
+                <div class="summary-item"><strong>Total Correct Answers (+1 each):</strong> <span id="stat-correct" style="color: var(--success); font-weight: bold;">0</span></div>
+                <div class="summary-item"><strong>Total Incorrect/Misses (-1 each):</strong> <span id="stat-wrong" style="color: var(--danger); font-weight: bold;">0</span></div>
+                <div class="summary-item"><strong>Accuracy Rate Percentage:</strong> <span id="stat-accuracy" style="font-weight: bold;">0%</span></div>
+            </div>
+
+            <button class="action-btn" style="display: inline-block; margin-top: 10px;" onclick="restartGame()">Restart Simulation</button>
+        </div>
+    </div>
+
+    <script>
+        const originalDatabase = [
+            {
+                cat: "Advanced Word Processing",
+                q: "When configuring multi-page page layout options, what is the primary operational objective of enabling 'Widow/Orphan Control'?",
+                opts: [
+                    "To prevent a single trailing line of a paragraph from appearing alone at the top of a new page, or a single leading line at the bottom.",
+                    "To lock embedded digital images explicitly to their paragraph anchors to avoid floating alignment errors.",
+                    "To dynamically adjust the character spacing matrices across full editorial columns to reduce total page usage.",
+                    "To automatically clear redundant formatting overrides from manually styled sub-headings."
+                ],
+                ans: 0,
+                hint: "Think about how text breaks visually at the absolute top or bottom edge of printed document sheets."
+            },
+            {
+                cat: "Advanced Word Processing",
+                q: "In dense desktop publishing layouts, what is the geometric function of specifying a 'Gutter Margin'?",
+                opts: [
+                    "To define the precise dimensional space separating parallel vertical text columns on a page layout.",
+                    "To add extra spacing to the binding side of a document to ensure text is not obscured after assembly.",
+                    "To restrict how far paragraph text elements can indent relative to the left page border.",
+                    "To regulate the vertical distance separating the last line of copy from the footer block container."
+                ],
+                ans: 1,
+                hint: "Consider the mechanical distortions that occur when multiple pages are bound or clamped together."
+            },
+            {
+                cat: "Advanced Word Processing",
+                q: "When constructing an automated Mail Merge system, what is the advantage of using conditional 'IF...THEN...ELSE' field rules?",
+                opts: [
+                    "To display alternate text strings dynamically based on whether a recipient's record meets specific data conditions.",
+                    "To automatically detect and delete duplicate recipient records before generating output files.",
+                    "To encrypt the target data transport file streams during outbound distribution runs.",
+                    "To convert unstructured flat data arrays into fully structured relational database tables."
+                ],
+                ans: 0,
+                hint: "Think about how software alters custom output when tailoring templates for distinct categories of users."
+            },
+            {
+                cat: "Advanced Word Processing",
+                q: "Why would an editor link a structured multi-level numbering list directly to specific Document Paragraph Styles?",
+                opts: [
+                    "To reduce the file storage size of document files containing large image assets.",
+                    "To embed external font families directly into output documents for web deployment.",
+                    "To automate hierarchical section numbering update patterns throughout a document as headers are added or shifted.",
+                    "To force all text characters into an uppercase layout format automatically."
+                ],
+                ans: 2,
+                hint: "Consider what happens to section numbers when you insert a new chapter in the middle of a massive file."
+            },
+            {
+                cat: "Advanced Word Processing",
+                q: "What layout issue occurs if an editor modifies a document's Tracking values without adjusting individual Kerning properties?",
+                opts: [
+                    "The uniform space across all characters shifts, but awkward gaps between unique letter pairings may remain uncorrected.",
+                    "The vertical text line spacing compresses, causing adjacent paragraph elements to clip into each other.",
+                    "The document's default page alignment changes from portrait orientation directly into landscape layout.",
+                    "The underlying font face reverts back to a default system sans-serif family automatically."
+                ],
+                ans: 0,
+                hint: "Differentiate between modifying spacing across a whole block of text versus fixing the gap between a capital 'W' and 'A'."
+            },
+            {
+                cat: "Advanced Word Processing",
+                q: "When managing a massive collaborative document development project, why are Master Documents utilized to manage individual Subdocuments?",
+                opts: [
+                    "To convert standard plain text layouts into interactive executable script protocols automatically.",
+                    "To combine distinct, independently edited files into a unified index structure while preserving decentralized file edits.",
+                    "To automatically translate a document's layout text strings into multiple target foreign languages.",
+                    "To bypass file permission security restrictions established on enterprise network drives."
+                ],
+                ans: 1,
+                hint: "Think about how large groups coordinate on multi-chapter textbooks without locking each other out of editing."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "In presentation software, what is a structural consequence of deleting a specific Layout Master slide that is currently assigned to active presentation slides?",
+                opts: [
+                    "The active presentation slides are permanently erased from the project media file timeline.",
+                    "The system runtime compiler generates an error and forces the workspace to crash immediately.",
+                    "The active slides revert to the structural design properties of the primary Slide Master template.",
+                    "The presentation slide file converts automatically into an uneditable static spreadsheet grid."
+                ],
+                ans: 2,
+                hint: "Consider the cascade structure of themes, where minor templates inherit styles from a main parent master."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "You configure a kiosk presentation slide with a global continuous loop setting but want certain interactive branches to exit the loop on click. What mechanism must you implement?",
+                opts: [
+                    "An increase in individual object animation duration values on the current slide layout.",
+                    "A standard slide transition effect applied globally across all elements in the deck.",
+                    "An Action Button set to target an external document file target or explicit hyperlinked presentation exit event.",
+                    "A hidden data validation script block bound to the background image layer matrix."
+                ],
+                ans: 2,
+                hint: "Identify which element allows interactive users to break a default automatic display cycle."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "What is an operational risk when designing interactive presentations with multiple deeply nested Hyperlink Action paths?",
+                opts: [
+                    "Users can become trapped in circular loops or dead ends if comprehensive navigation return anchors are missing.",
+                    "The underlying graphics card hardware will fail to display any custom color palettes correctly.",
+                    "The slide file format changes from presentation media into unstructured database source tables.",
+                    "Individual object animations will automatically execute at twice their configured speed values."
+                ],
+                ans: 0,
+                hint: "Think about the challenges a user faces when navigating an absolute maze of custom web pages or menus without a home button."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "How does embedding an external high-definition multimedia video asset directly differ from linking it within a presentation project file?",
+                opts: [
+                    "Linking stores the entire video file data payload directly inside the slide's text placeholder structures.",
+                    "Embedding increases total presentation file size but guarantees playback mobility on separate target hardware environments.",
+                    "Embedding leaves the presentation file size light by forcing real-time background streaming downloads.",
+                    "Linking completely prevents any users from pausing or seeking through the active playback timeline."
+                ],
+                ans: 1,
+                hint: "Consider the trade-offs between carrying a heavy book around versus carrying a slip of paper with the library shelf address on it."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "When adhering to WCAG accessibility guidelines during presentation design, what is the critical design reason for verifying background-to-text contrast ratios?",
+                opts: [
+                    "To guarantee that audiences with visual impairments can distinctively read information clearly under diverse lighting conditions.",
+                    "To decrease the processing workload demands required by the computer monitor hardware systems.",
+                    "To allow multiple video tracks to play simultaneously inside a single layout container.",
+                    "To force presentation playback engines to loop text animations continuously."
+                ],
+                ans: 0,
+                hint: "Focus on the physical and environmental barriers encountered by people viewing presentations on low-illumination screens."
+            },
+            {
+                cat: "Interactive Multimedia Systems",
+                q: "In a multimedia interface, what design problem is created when an interactive element triggers both a 'Hover State' sound cue and a 'Click State' navigation jump simultaneously?",
+                opts: [
+                    "The audio playback could be abruptly cut off as the presentation immediately shifts layout frames to the target slide.",
+                    "The interactive system automatically blocks the mouse pointer from selecting any other interactive options.",
+                    "The text fonts within the destination screen container automatically change into unreadable code strings.",
+                    "The spreadsheet calculation rules underlying the interface shift from absolute into relative formatting."
+                ],
+                ans: 0,
+                hint: "Think about what happens to music playing inside a room if you are teleported instantly to a completely different building."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "If you drag the formula =$A1+B$1 from cell C1 down into cell C2, and then drag it sideways into cell D2, what formula will evaluate in cell D2?",
+                opts: [
+                    "=$A1+B$1",
+                    "=$B2+C$2",
+                    "=$A2+C$1",
+                    "=A2+B1"
+                ],
+                ans: 2,
+                hint: "Track each absolute dollar sign independently: one locks a column reference while the other locks a row reference."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "When engineering an advanced data analysis model, what is the functional advantage of utilizing an 'INDEX-MATCH' combined formula instead of a standard 'VLOOKUP' function?",
+                opts: [
+                    "It automatically converts text data formats into multi-dimensional graphical line charts.",
+                    "It completely prevents users from deleting key worksheets through password encryption locks.",
+                    "It permits data searches from right-to-left across rows and eliminates performance hits caused by inserting new worksheet columns.",
+                    "It reduces the calculation processing time to exactly zero milliseconds across all hardware platforms."
+                ],
+                ans: 2,
+                hint: "Consider what happens to VLOOKUP reference indexes when someone inserts a new column in the middle of a data matrix."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "Review this complex spreadsheet function setup: =IF(AND(A1>50, B1=\"Paid\"), C1*0.1, IF(OR(A1>100, B1=\"Pending\"), C1*0.05, 0)). If cell A1 contains 120 and cell B1 contains \"Pending\", what calculation is executed?",
+                opts: [
+                    "C1*0.1",
+                    "0",
+                    "C1*0.05",
+                    "An immediate error message configuration statement."
+                ],
+                ans: 2,
+                hint: "Break down the evaluation steps sequentially, verifying how the first nested conditional failure passes execution to the next check."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "What is the structural cause of a formula evaluation error inside a spreadsheet analysis module?",
+                opts: [
+                    "A formula contains a cell reference path pointing to a row, column, or worksheet that was deleted.",
+                    "A formula attempts to divide a numeric value by an empty or zero-value cell target.",
+                    "The text entry string in a cell exceeds the maximum default width layout of the column container.",
+                    "The data formatting type applied to a cell range conflicts with the local user system timezone parameters."
+                ],
+                ans: 0,
+                hint: "Think about what happens to a mailing label when the physical house it points to is demolished."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "When utilizing the 'Goal Seek' system utility within a financial spreadsheet, how does its processing execution cycle operate?",
+                opts: [
+                    "It scans external network directories to dynamically import current market financial datasets.",
+                    "It iteratively adjusts a single input variable cell value until a dependent formula cell hits an exact declared target value.",
+                    "It automatically highlights misspelled text records across the current worksheet grid view.",
+                    "It optimizes multiple separate input cells simultaneously using complex linear constraints."
+                ],
+                ans: 1,
+                hint: "Consider the difference between manual guessing to find an input value versus letting the engine auto-calculate it backwards."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "What is the operational downside of allowing a 'Circular Reference' loop condition to persist inside an unmanaged spreadsheet data sheet?",
+                opts: [
+                    "The current spreadsheet workspace file converts into an unreadable compressed graphic file.",
+                    "Formulas try to calculate their own cell outputs indefinitely, causing calculation performance lag or incorrect data states.",
+                    "The operating system automatically deletes the spreadsheet application from the computer.",
+                    "Relative cell formatting syntax rules automatically transform into absolute configurations."
+                ],
+                ans: 1,
+                hint: "Think about a definition dictionary where Word A points to Word B, and Word B tells you to look up Word A."
+            },
+            {
+                cat: "Spreadsheet Data Modeling",
+                q: "When constructing multi-variable Pivot Tables from raw system datasets, what does the data 'Cache' represent?",
+                opts: [
+                    "A secure password-protected database cloud vault intended to back up file archives.",
+                    "An internal memory snapshot of the source data stored inside the pivot architecture to optimize processing speed.",
+                    "A validation parameter list that restricts user entries inside column field boundaries.",
+                    "The total financial cost value accumulated across a company's yearly operations ledger."
+                ],
+                ans: 1,
+                hint: "Consider why structural shifts in a pivot table render instantly, even when the original database contains millions of records."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "In a relational database system, how does implementing a 'Foreign Key' constraint help preserve data integrity across tables?",
+                opts: [
+                    "It automatically formats all text character strings inside a column to display in bold print styles.",
+                    "It encrypts table record data rows to block unauthorized local database administrators.",
+                    "It prevents child record rows from referencing non-existent primary values in a parent table.",
+                    "It forces every single record row in the system to share an identical text string value parameter."
+                ],
+                ans: 2,
+                hint: "Think about if a store database lets an order table list a customer ID that doesn't actually exist."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "You need to model a many-to-many relationship between an 'Orders' table and a 'Products' table. What is the database design solution?",
+                opts: [
+                    "Merge all fields from both structures together into one flat unstructured text file table matrix.",
+                    "Build an intermediate junction table containing foreign keys that point directly to both parent tables.",
+                    "Configure multiple primary key markers inside the primary 'Products' data table layout.",
+                    "Link the two tables directly together using a single boolean True/False field parameter."
+                ],
+                ans: 1,
+                hint: "Consider how an order can contain many different products, while a single product can appear across many separate orders."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "What operational problem occurs if you activate the cascade delete attribute rule on a Foreign Key relational link parameter?",
+                opts: [
+                    "The database engine locks up instantly and prevents any new user input entries from saving.",
+                    "Deleting a single master record row will automatically wipe out all linked child records across dependent tables.",
+                    "The primary keys assigned across all system tables shift values automatically.",
+                    "The entire database file converts into an unstructured spreadsheet document format."
+                ],
+                ans: 1,
+                hint: "Think about what happens to a list of student grade records if the main student profile is completely removed from the system."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "An enterprise database engine processes a query structured as: WHERE (Region = 'North' OR Region = 'South') AND Sales > 5000. Which record data row matches this filtering criteria?",
+                opts: [
+                    "A record from the North region with a total Sales value of 4100 units.",
+                    "A record from the East region with a total Sales value of 9500 units.",
+                    "A record from the South region with a total Sales value of 6200 units.",
+                    "Any data row from either North or South regions, completely ignoring the sales values."
+                ],
+                ans: 2,
+                hint: "Evaluate the parenthetical group first to establish regional limits, then apply the sales filter to that subset."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "How does the functional purpose of a 'WHERE' filter clause differ from a 'HAVING' filter clause inside advanced database query scripts?",
+                opts: [
+                    "WHERE filters raw data rows before group processing, whereas HAVING filters aggregated data values after grouping.",
+                    "HAVING manages structural security profile setups, while WHERE handles user interface data entries.",
+                    "WHERE is limited to numerical values, while HAVING can filter character string parameters.",
+                    "They operate identically, and can be interchanged anywhere inside an execution script."
+                ],
+                ans: 0,
+                hint: "Consider the order of operations: do you filter individual customer rows first, or do you filter grouped city average values?"
+            },
+            {
+                cat: "Relational Database Design",
+                q: "What is the structural objective of database designers when scaling a database design layout up from First Normal Form into Second Normal Form?",
+                opts: [
+                    "To compress all stored data records into single-line comma-separated text blocks.",
+                    "To eliminate all partial dependencies by ensuring every non-key column depends completely on the entire primary key.",
+                    "To insert multiple identical duplicate rows inside tables to provide data backups.",
+                    "To convert the physical database file container format into an encrypted network stream."
+                ],
+                ans: 1,
+                hint: "Focus on multi-column composite primary keys, and how fields must depend on the whole key rather than just a part of it."
+            },
+            {
+                cat: "Relational Database Design",
+                q: "Why does adding multiple structural indexes to a database table accelerate query performance while slowing down data modification operations?",
+                opts: [
+                    "Indexes automatically change text strings to lowercase, complicating editing tasks.",
+                    "The physical database engine blocks all user input edits whenever queries are executing.",
+                    "Indexes provide quick lookups for data retrieval but must be recalculated every time data rows are modified.",
+                    "Indexes expand file size to the point where local storage hardware runs out of cache memory."
+                ],
+                ans: 2,
+                hint: "Think about a physical book index: it makes finding topics fast, but adding a new page means updating every index reference."
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "In modular programming, what runtime hazard occurs when a local sub-routine variable shares an identical identifier name with a global system variable?",
+                opts: [
+                    "The compiler immediately deletes the global variable container from the computer's storage layout.",
+                    "Variable shadowing occurs, causing the local variable scope to override and hide the global parameter within that function.",
+                    "The script code automatically translates its execution blocks into distinct web layout languages.",
+                    "The code script switches execution formats, changing iterative loop blocks into conditional checks."
+                ],
+                ans: 1,
+                hint: "Consider what happens when a country leader and a small town mayor share the exact same name within that town's offices."
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "Analyze this code execution loop: Set Count = 1; WHILE Count != 10 DO Output Count; Set Count = Count + 2; ENDWHILE. What structural issue is present?",
+                opts: [
+                    "The script framework will generate an immediate syntax error and fail to execute.",
+                    "It creates an infinite loop because Count increments by odd steps (1, 3, 5, 7, 9, 11) and skips the exit target of 10.",
+                    "The variable initialization parameter value lacks an explicit numeric baseline assignment.",
+                    "The loop control logic executes the output instruction block backwards."
+                ],
+                ans: 1,
+                hint: "Trace the values of Count manually: 1, 3, 5, 7, 9... what happens on the next mathematical addition?"
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "When debugging code via a Trace Table, what are you systematically documenting?",
+                opts: [
+                    "The legal copyright registration details associated with the application code repository.",
+                    "The step-by-step chronological tracking of variable value transformations across each line of code execution.",
+                    "The visual appearance of interface screens across different mobile hardware options.",
+                    "The network bandwidth download speeds monitored across cloud server arrays."
+                ],
+                ans: 1,
+                hint: "Think of a manual checklist where you write down variable updates line-by-line to see exactly where calculations go wrong."
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "What type of programming fault causes an application to execute normally for hours before crashing when a user inputs a specific name string?",
+                opts: [
+                    "A syntax error, because the programming language rules were broken by the user's entry.",
+                    "An absolute cell reference mapping error within the code repository structure.",
+                    "A runtime error, likely triggered by unvalidated data entry handling or memory array allocation limits.",
+                    "A structural style cascade error within the application presentation view layer."
+                ],
+                ans: 2,
+                hint: "Differentiate between grammatical syntax errors caught during building versus unexpected data crashes that occur at runtime."
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "In software engineering, how does applying functional Decomposition improve the process of designing complex algorithms?",
+                opts: [
+                    "It breaks a complex problem down into small, independent sub-routines that are easier to code, test, and maintain.",
+                    "It automatically converts complex text code arrays directly into visual video storyboards.",
+                    "It combines distinct database systems together into a single flat file container layout.",
+                    "It encrypts variable tracking paths to block malware interaction vectors."
+                ],
+                ans: 0,
+                hint: "Think about how an auto plant splits car assembly down into separate stations instead of forcing one person to build a vehicle alone."
+            },
+            {
+                cat: "Algorithmic Program Logic",
+                q: "What structural issue is encountered when an array variable compiled in a zero-indexed programming framework experiences an 'Out of Bounds' validation fault?",
+                opts: [
+                    "The array variable data storage format converted into an encryption key block.",
+                    "The code script logic targeted an index reference address position that does not exist within the array size boundaries.",
+                    "The program script automatically duplicated its data fields to save space.",
+                    "The system changed its numeric baseline model from binary directly into hexadecimal formatting."
+                ],
+                ans: 1,
+                hint: "Consider a hotel with exactly 10 rooms numbered 0 through 9. What happens if a bellhop tries to deliver luggage to Room 10?"
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "In web development layout engines, what operational anomaly describes the phenomenon of 'Margin Collapsing' within the CSS layout framework?",
+                opts: [
+                    "The border lines of neighboring layout grid structures overlap, distorting font display scaling.",
+                    "A webpage's background image layer clips over foreground text layout containers.",
+                    "The vertical margins of adjacent block boxes combine into a single margin value equal to the largest of the individual margins.",
+                    "The text color selection transitions automatically into transparency due to container sizing changes."
+                ],
+                ans: 2,
+                hint: "Think about what happens when two adjacent blocks each request 20px of breathing room. Do they combine or push 40px apart?"
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "Review this CSS style rule setup: div { color: blue !important; } .hero-banner { color: green; } .main { color: red; } If a webpage contains <div class=\"hero-banner main\">Text</div>, what color will the text display?",
+                opts: [
+                    "Green",
+                    "Red",
+                    "Blue",
+                    "Black"
+                ],
+                ans: 2,
+                hint: "Analyze the impact of the priority declaration tag. It overrides standard selector weight rules."
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "What is the primary design difference between a fluid Responsive Design layout and an Adaptive Design layout infrastructure?",
+                opts: [
+                    "Responsive design relies entirely on database forms, while adaptive layouts use flat file storage tables.",
+                    "Adaptive layouts translate code scripts into different languages automatically depending on the user's location.",
+                    "Responsive design scales continuously using fluid percentage grids, whereas adaptive design snaps to static layout sizes at fixed pixel breakpoints.",
+                    "Responsive layouts block visually impaired users from utilizing screen reader text assets."
+                ],
+                ans: 2,
+                hint: "Consider the difference between a liquid adjusting to any container shape versus a series of different-sized nesting boxes."
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "When configuring elements via CSS positioning rules, how does the behavior of an object styled as position: absolute; differ from an object styled as position: relative;?",
+                opts: [
+                    "Relative locks an object permanently to the computer screen viewport, preventing scrolling actions.",
+                    "Absolute forces text characters to scale into larger font face heights automatically.",
+                    "Absolute moves elements out of the normal layout flow relative to their closest positioned ancestor, while relative shifts elements relative to their original position without altering surrounding layouts.",
+                    "They perform identically across modern browser display engines."
+                ],
+                ans: 2,
+                hint: "Think about whether an item leaves an empty hole where it used to sit in the page flow or floats independently above everything else."
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "During the web browsing lifecycle, what is the operational responsibility of an Authoritative Name Server within the Domain Name System pipeline?",
+                opts: [
+                    "To cache web graphics locally to accelerate website load performance speeds.",
+                    "To encrypt user input password records submitted via database data forms.",
+                    "To hold the definitive master database mapping of domain names to IP addresses for its specific registered zone.",
+                    "To track geographic locations of hardware routers inside Wide Area Networks."
+                ],
+                ans: 2,
+                hint: "Think of the difference between an intermediate operator looking up info versus the primary clerk holding the master record book."
+            },
+            {
+                cat: "Web Systems & UX Design",
+                q: "How does a web browser engine handle an incoming server response code of '301 Moved Permanently' differently than a '403 Forbidden' validation response?",
+                opts: [
+                    "403 converts webpage layout code directly into unformatted database data tables.",
+                    "301 indicates that the server hardware crashed and deleted all stored data files.",
+                    "301 triggers an automatic permanent redirection to a new file location, while 403 signals an access denied error due to missing permissions.",
+                    "They generate identical visual error alerts within modern web rendering software packages."
+                ],
+                ans: 2,
+                hint: "Distinguish between a forwarding message that points you to a new office versus a locked door with a 'No Trespassing' sign."
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "Why can a network hardware Switch direct data packets to specific workstations inside a Local Area Network, whereas a basic Hub cannot?",
+                opts: [
+                    "Hubs convert incoming data files directly into encrypted database structures.",
+                    "Switches automatically reformat webpage code layout files into video timelines.",
+                    "Switches track physical network addresses to build point-to-point connections, while hubs broadcast incoming traffic to all connected ports.",
+                    "Hubs require a continuous connection to wide area satellite networks to forward packets."
+                ],
+                ans: 2,
+                hint: "Think about the difference between a mailroom clerk who reads labels to deliver mail versus *someone yelling every message out loud into a megaphone.*"
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "What is the operational purpose of executing the Discover, Offer, Request, Acknowledge protocol sequence within a network topology?",
+                opts: [
+                    "To encode digital video sequences into compressed cross-platform container formats.",
+                    "To protect database report files against administrative user access modification errors.",
+                    "To dynamically assign unique local IP addresses, subnet configurations, and gateway parameters to client workstations via a server allocation engine.",
+                    "To scan network interface cards for physical manufacturing material hardware damage."
+                ],
+                ans: 2,
+                hint: "Think about the steps a new computer takes to ask a network router for an IP address when first plugging in a cable."
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "In cryptographic network security architectures, how does an Asymmetric Encryption model differ fundamentally from a Symmetric Encryption framework?",
+                opts: [
+                    "Sky-level programming frameworks use symmetric keys to modify document file orientations.",
+                    "Asymmetric encryption transforms presentation media slide decks into web text documents.",
+                    "Asymmetric uses a public key for encoding and a separate private key for decoding, whereas symmetric uses one shared key for both actions.",
+                    "Symmetric systems eliminate the need to calculate mathematical bits during data transmission."
+                ],
+                ans: 2,
+                hint: "Consider the safety benefits of using two distinct keys (one to lock, one to unlock) versus a single house key that both locks and unlocks."
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "A network engineer configures Host A with IP 192.168.1.50 and Subnet Mask 255.255.255.0. Host B is given IP 192.168.2.50 with the same mask. Why can they not communicate directly without a router?",
+                opts: [
+                    "The host machines are assigned duplicate identity markers on the network matrix.",
+                    "The network data payloads are automatically deleted by security firewall protocols.",
+                    "The subnet mask blocks direct communication by placing the hosts on two distinct logical networks.",
+                    "The computer network interface card hardware operates exclusively under portrait configurations."
+                ],
+                ans: 2,
+                hint: "Examine the third octet numbers alongside the subnet mask block rules to see if these machines live in the same logical neighborhood."
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "When designing high-volume data transport pipelines, what is the architectural trade-off of selecting the User Datagram Protocol instead of the Transmission Control Protocol?",
+                opts: [
+                    "TCP converts incoming video layout frames into database storage structures automatically.",
+                    "UDP treats network layers dynamically, ignoring baseline router settings.",
+                    "UDP provides faster data transmission speed by removing error correction and packet delivery confirmation handshakes.",
+                    "Selecting TCP increases the physical file storage space of external hardware network drives."
+                ],
+                ans: 2,
+                hint: "Think about the difference between sending a registered letter that tracks delivery versus broadcasting a live television signal."
+            },
+            {
+                cat: "Network Infrastructure & Security",
+                q: "What security vulnerability occurs when an enterprise network administrator fails to update security parameters on an active wireless network firewall system?",
+                opts: [
+                    "The webpage layout code automatically strips out its anchor hyperlinking indicators.",
+                    "The hardware router automatically transforms relative calculations into database forms.",
+                    "Malicious actors can intercept unencrypted data packets or execute data interception and traffic diversion actions.",
+                    "The display monitor hardware reverts to a monochrome color palette display."
+                ],
+                ans: 2,
+                hint: "Consider the dangers of leaving an unmonitored gate open on a corporate network infrastructure perimeter."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "In digital audio editing workspaces, why does configuring a high 'Sample Rate' produce clearer audio output while increasing file weight?",
+                opts: [
+                    "It automatically formats audio files to display embedded text scripts on screens.",
+                    "It forces multi-track timelines to run at lower frame rate velocity ratios.",
+                    "It captures the audio signal's frequency more times per second, creating a highly accurate digital reconstruction of sound waves.",
+                    "It converts lossy video files into uncompressed relational database indices."
+                ],
+                ans: 2,
+                hint: "Think of the difference between taking 96,000 snapshots of a moving object every second versus taking only 44,100."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "When compositing digital video tracks, what visual problem describes the occurrence of color bleeding during a green screen separation execution step?",
+                opts: [
+                    "The output video project automatically changes its tracking resolution into spreadsheet rows.",
+                    "The video editing application workspace windows crash due to hardware driver errors.",
+                    "Green background light reflects onto the edges of a subject, creating an unnatural colored outline that disrupts clean background isolation.",
+                    "The audio tracks split away from their linked video timeline synchronization anchors."
+                ],
+                ans: 2,
+                hint: "Focus on the physical reflections that happen when a bright studio background illuminates the back of an actor's wardrobe."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "What is the structural distinction between a digital media processing engine and a digital media file structural container?",
+                opts: [
+                    "The container encrypts database validation code records, while the codec builds web style templates.",
+                    "The codec operates exclusively on local area network routers to switch data packets.",
+                    "The compression algorithm defines how the mathematical file space is optimized, whereas the container packages the audio, video, and metadata tracks into a single file.",
+                    "They represent the exact same technology, and the names are used interchangeably across editing suites."
+                ],
+                ans: 2,
+                hint: "Think about the difference between a recipe used to pack food into tiny spaces versus the actual physical cardboard shipping box."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "What visual artifact is visible when reviewing rapid movement inside digital video exported using Interlaced scanning instead of Progressive scanning?",
+                opts: [
+                    "The video file layout instantly changes its output format into a plain text document.",
+                    "The target color values across all video tracks wash out into high contrast monochrome blocks.",
+                    "A jagged distortion effect along the edges of moving objects caused by alternating odd and even scan lines displaying with a time delay.",
+                    "The system display monitor locks up and requires a complete hardware reset routine."
+                ],
+                ans: 2,
+                hint: "Consider what happens when a single frame splits into alternating comb-like line patterns that update at separate times."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "Why do audio engineering teams apply a Dynamic Range Compressor filter tool during multi-track mastering sessions?",
+                opts: [
+                    "To accelerate the frame rate processing metrics of adjacent video timeline sequences.",
+                    "To protect database table record profiles against manual editing modification errors.",
+                    "To narrow the volume gap between the quietest and loudest parts of an audio track by attenuating signal peaks.",
+                    "To change the physical length of the track's duration across the editing project layout."
+                ],
+                ans: 2,
+                hint: "Think about a tool that turns down the volume on loud noise spikes while bringing up soft sounds so everything stays audible."
+            },
+            {
+                cat: "Media Engineering & Animation",
+                q: "When exporting immersive audio layouts like surround sound, how does channel mapping configuration differ from traditional two-channel paths?",
+                opts: [
+                    "Stereo tracks convert webpage styling text blocks directly into relational databases.",
+                    "Spatial audio completely removes the need to store data metadata layers inside media containers.",
+                    "Spatial configurations assign unique audio tracks to multiple discrete speaker locations, while basic paths split sound across two channels.",
+                    "Spatial configurations can only execute inside local area network routing hardware frameworks."
+                ],
+                ans: 2,
+                hint: "Compare the directional positioning choices of left/right panning against mapping distinct feeds to front, center, and rear speakers."
+            }
+        ];
+
+        // Runtime Engine Coordinates
+        let database = [];
+        let currentQuestionIndex = 0;
+        let runningScore = 0;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+        let isAnswered = false;
+        let dynamicAnswerIndex = -1; // Stores scrambled runtime answer location
+
+        // Document Object References
+        const qCounter = document.getElementById("q-counter");
+        const scoreDisplay = document.getElementById("score-display");
+        const progressBar = document.getElementById("progress-bar");
+        const moduleBadge = document.getElementById("module-badge");
+        const questionText = document.getElementById("question-text");
+        const optionsContainer = document.getElementById("options-container");
+        const feedbackPane = document.getElementById("feedback-pane");
+        const feedbackTitle = document.getElementById("feedback-title");
+        const hintDisplay = document.getElementById("hint-display");
+        const nextBtn = document.getElementById("next-btn");
+        const quizView = document.getElementById("quiz-view");
+        const resultsView = document.getElementById("results-view");
+
+        // Fisher-Yates Array Shuffling Core Utility 
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Initialization Core
+        function initQuiz() {
+            currentQuestionIndex = 0;
+            runningScore = 0;
+            totalCorrect = 0;
+            totalWrong = 0;
+            quizView.style.display = "block";
+            resultsView.style.display = "none";
+            
+            // Step 1: Deep copy and randomize question lineup sequence
+            database = JSON.parse(JSON.stringify(originalDatabase));
+            shuffleArray(database);
+            
+            updateDashboard();
+            loadQuestion();
+        }
+
+        function updateDashboard() {
+            scoreDisplay.textContent = runningScore;
+            qCounter.textContent = "Question " + (currentQuestionIndex + 1) + " of " + database.length;
+            const pct = (currentQuestionIndex / database.length) * 100;
+            progressBar.style.width = pct + "%";
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            nextBtn.style.display = "none";
+            feedbackPane.style.className = "feedback-pane";
+            feedbackPane.style.display = "none";
+            
+            const item = database[currentQuestionIndex];
+            moduleBadge.textContent = item.cat;
+            questionText.textContent = item.q;
+            
+            optionsContainer.innerHTML = "";
+            const letterPrefix = ["A", "B", "C", "D"];
+            
+            // Step 2: Extract text options array and attach original positional metadata map tags
+            let mappedOptions = item.opts.map((text, idx) => {
+                return { text: text, isCorrect: (idx === item.ans) };
+            });
+            
+            // Step 3: Shuffle individual option configurations dynamically
+            shuffleArray(mappedOptions);
+            
+            // Step 4: Map back out to interface targets, caching target truth key location
+            mappedOptions.forEach((opt, index) => {
+                if (opt.isCorrect) {
+                    dynamicAnswerIndex = index;
+                }
+                
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.onclick = () => verifyAnswer(index);
+                btn.innerHTML = '<span class="prefix">[' + letterPrefix[index] + ']</span> <span class="text">' + opt.text + '</span>';
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function verifyAnswer(selectedIndex) {
+            if (isAnswered) return;
+            isAnswered = true;
+            
+            const item = database[currentQuestionIndex];
+            const buttons = optionsContainer.getElementsByClassName("option-btn");
+            
+            if (selectedIndex === dynamicAnswerIndex) {
+                buttons[selectedIndex].classList.add("correct");
+                runningScore += 1;
+                totalCorrect++;
+                showFeedback(true, item.hint);
+            } else {
+                buttons[selectedIndex].classList.add("wrong");
+                buttons[dynamicAnswerIndex].classList.add("correct");
+                runningScore -= 1;
+                totalWrong++;
+                showFeedback(false, item.hint);
+            }
+            
+            for (let btn of buttons) {
+                btn.setAttribute("disabled", "true");
+            }
+            
+            scoreDisplay.textContent = runningScore;
+            nextBtn.textContent = (currentQuestionIndex === database.length - 1) ? "View Metrics Summary" : "Next Question";
+            nextBtn.style.display = "inline-block";
+        }
+
+        function showFeedback(isCorrect, hintText) {
+            feedbackPane.className = "feedback-pane " + (isCorrect ? "correct" : "wrong");
+            feedbackTitle.textContent = isCorrect ? "✔ Correct Setup (+1 Point Added)" : "✘ Incorrect Selection (-1 Point Penalty)";
+            hintDisplay.innerHTML = "<strong>Pedagogical Insight:</strong> " + hintText;
+            feedbackPane.style.display = "block";
+        }
+
+        function handleNextStep() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < database.length) {
+                updateDashboard();
+                loadQuestion();
+            } else {
+                renderResultsSummary();
+            }
+        }
+
+        function renderResultsSummary() {
+            quizView.style.display = "none";
+            resultsView.style.display = "block";
+            
+            document.getElementById("final-score-display").textContent = runningScore;
+            document.getElementById("stat-correct").textContent = totalCorrect;
+            document.getElementById("stat-wrong").textContent = totalWrong;
+            
+            const accuracy = Math.round((totalCorrect / database.length) * 100);
+            document.getElementById("stat-accuracy").textContent = accuracy + "%";
+        }
+
+        function restartGame() {
+            initQuiz();
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
