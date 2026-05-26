@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge ICT Starters: Escape the Server Room!</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-color: #161b22;
+            --text-color: #c9d1d9;
+            --accent-green: #238636;
+            --accent-red: #da3633;
+            --neon-blue: #58a6ff;
+            --warning-orange: #d29922;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            background-color: var(--panel-color);
+            border: 3px solid var(--neon-blue);
+            border-radius: 10px;
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+            position: relative;
+        }
+
+        h1 {
+            color: var(--neon-blue);
+            text-align: center;
+            font-size: 24px;
+            margin-top: 0;
+            border-bottom: 2px dashed var(--neon-blue);
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .stat-box {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .progress-bar-container {
+            background-color: #21262d;
+            border-radius: 5px;
+            height: 15px;
+            width: 100%;
+            margin-top: 5px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        #question-box {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            min-height: 80px;
+            border-left: 4px solid var(--warning-orange);
+            padding-left: 15px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: var(--text-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background-color: #30363d;
+            border-color: var(--neon-blue);
+            transform: translateX(5px);
+        }
+
+        #feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+            animation: blink 0.5s ease 2;
+        }
+
+        .feedback-correct {
+            background-color: rgba(35, 134, 54, 0.2);
+            border: 1px solid var(--accent-green);
+            color: #56d364;
+        }
+
+        .feedback-wrong {
+            background-color: rgba(218, 54, 51, 0.2);
+            border: 1px solid var(--accent-red);
+            color: #f85149;
+        }
+
+        #action-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background-color: var(--neon-blue);
+            color: #000;
+            border: none;
+            padding: 10px 25px;
+            font-family: inherit;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        #screen-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 10;
+            display: none;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #overlay-title {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        #overlay-desc {
+            font-size: 16px;
+            margin-bottom: 25px;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="screen-overlay">
+        <h2 id="overlay-title">GAME OVER</h2>
+        <p id="overlay-desc"></p>
+        <button class="action-btn" id="restart-btn" style="display: block;" onclick="resetGame()">REBOOT SYSTEM</button>
+    </div>
+
+    <h1>SYSTEM DEFENSE: CAMBRIDGE ICT EDITION</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            SERVER ROOM INTEGRITY:
+            <div class="progress-bar-container">
+                <div id="integrity-bar" class="progress-bar"></div>
+            </div>
+        </div>
+        <div class="stat-box" style="text-align: right;">
+            STAGES CLEARED: <span id="score-counter" style="color: var(--neon-blue);">0/5</span><br>
+            ANXIETY LEVEL: <span id="anxiety-counter" style="color: var(--warning-orange);">LOW</span>
+        </div>
+    </div>
+
+    <div id="question-box">Loading crisis scenario...</div>
+
+    <div class="options-container" id="options-box">
+        </div>
+
+    <div id="feedback-box"></div>
+
+    <div id="action-container">
+        <button class="action-btn" id="next-btn" onclick="nextQuestion()">CONTINUE FIXING ROOM</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "CRISIS 1: A rogue line of text is crying at the absolute top of Page 2, entirely separated from its parent paragraph family on Page 1. The document aesthetic layout is breaking down! Quick, what setting cures this visual trauma?",
+            opts: [
+                "Enable Widow/Orphan Control to force structural paragraph togetherness.",
+                "Scream at the keyboard and change the entire font to Comic Sans.",
+                "Increase the Gutter Margin to 500 inches to squeeze it out of existence.",
+                "Delete the operating system entirely."
+            ],
+            ans: 0,
+            success: "SUCCESS! You stabilized the layout. The lonely line has been safely reunited with its family. Server room temperature cools down by 2°C.",
+            fail: "FAILURE! You absolute madman. The line formatting has glitched across the server, and the office printer has begun weaponizing paper airplanes against you. -25% Integrity!"
+        },
+        {
+            q: "CRISIS 2: Your corporate spreadsheet matrix is suddenly sweating. Cell A1 says it needs Cell B1 to figure out its value, but Cell B1 says it cannot calculate anything until Cell A1 finishes! They are trapped in an existential death loop! What code monster have you unleashed?",
+            opts: [
+                "A 'Mail Merge Catastrophe'",
+                "An Unhandled Asymmetric Protocol",
+                "A 'Circular Reference' black hole loop",
+                "A standard spelling mistake"
+            ],
+            ans: 2,
+            success: "SUCCESS! You broken the loop. Cell A1 and Cell B1 are now happily married with fixed value parameters.",
+            fail: "FAILURE! The calculation loops out of control. Your CPU begins making a sound resembling a jet engine taking off. -25% Integrity!"
+        },
+        {
+            q: "CRISIS 3: You are configuring your database relationships. You decide to delete a temporary 'Customer Profile' folder, forgetting that 'ON DELETE CASCADE' rules are aggressively active across the schema pipelines. What happens next?",
+            opts: [
+                "The system prompts you with a friendly text check box.",
+                "The relational engine cascades deletion down through all child orders, histories, and records, effectively snapping them out of spatial reality.",
+                "The database shifts directly into an interactive presentation slide master layout.",
+                "The database network automatically buys you an iced coffee."
+            ],
+            ans: 1,
+            success: "SUCCESS! You quickly intercepted the pipeline and decoupled the dependency before an data apocalypse triggered.",
+            fail: "FAILURE! POOF! 10 years of historical data logs vanish. Your boss is looking at you through the server glass pane with absolute despair. -25% Integrity!"
+        },
+        {
+            q: "CRISIS 4: A sneaky hardware Hub enters the network bar and receives a top-secret data payload intended strictly for Bob. How does this archaic network component handle delivery?",
+            opts: [
+                "It reads Bob's unique MAC address and quietly hands him the package point-to-point.",
+                "It immediately panics and broadcasts/screams the secret payload out loud to every single workstation sitting in the bar layout.",
+                "It encrypts the payload using an asymmetric firewall public key parameter.",
+                "It converts the package into an HTML responsive website template."
+            ],
+            ans: 1,
+            success: "SUCCESS! You replaced that ancient Hub with an intelligent Switch before the corporate secrets leaked to the janitor terminal.",
+            fail: "FAILURE! The Hub screamed the password. Everyone in the facility now knows your private browser bookmarks. -25% Integrity!"
+        },
+        {
+            q: "CRISIS 5: You compiled an endless code script block that executes: Count = 1; WHILE Count != 10 DO Eat_Pizza; Count = Count + 2. Your stomach is swelling. What computational logic failure have you executed?",
+            opts: [
+                "An Out-of-Bounds structural layout check error.",
+                "A syntax grammar rule validation asset loss.",
+                "An infinite loop because your odd stepping parameters jump directly from 9 to 11, missing the exit condition completely.",
+                "Decomposition anomaly."
+            ],
+            ans: 2,
+            success: "SUCCESS! You changed the logic to safe boundaries. You stop eating pizza at exactly index 10 and escape the server facility safely!",
+            fail: "FAILURE! You exploded from eating infinite pizzas. The machine code logic won this round. -25% Integrity!"
+        }
+    ];
+
+    let currentIdx = 0;
+    let integrity = 100;
+    let score = 0;
+
+    const questionBox = document.getElementById('question-box');
+    const optionsBox = document.getElementById('options-box');
+    const feedbackBox = document.getElementById('feedback-box');
+    const nextBtn = document.getElementById('next-btn');
+    const integrityBar = document.getElementById('integrity-bar');
+    const scoreCounter = document.getElementById('score-counter');
+    const anxietyCounter = document.getElementById('anxiety-counter');
+    const screenOverlay = document.getElementById('screen-overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+
+    function loadQuestion() {
+        feedbackBox.style.display = 'none';
+        nextBtn.style.display = 'none';
+        
+        if (currentIdx >= questions.length) {
+            triggerEndScreen(true);
+            return;
+        }
+
+        const currentQ = questions[currentIdx];
+        questionBox.innerText = currentQ.q;
+        optionsBox.innerHTML = '';
+
+        currentQ.opts.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = `[Option ${String.fromCharCode(65 + idx)}] ${opt}`;
+            btn.onclick = () => selectAnswer(idx);
+            optionsBox.appendChild(btn);
+        });
+    }
+
+    function selectAnswer(selectedIdx) {
+        const currentQ = questions[currentIdx];
+        const buttons = optionsBox.querySelectorAll('.option-btn');
+        
+        // Disable all choices
+        buttons.forEach(btn => btn.disabled = true);
+
+        feedbackBox.style.display = 'block';
+        
+        if (selectedIdx === currentQ.ans) {
+            score++;
+            scoreCounter.innerText = `${score}/${questions.length}`;
+            feedbackBox.className = 'feedback-correct';
+            feedbackBox.innerText = currentQ.success;
+        } else {
+            integrity -= 25;
+            updateIntegrityUI();
+            feedbackBox.className = 'feedback-wrong';
+            feedbackBox.innerText = currentQ.fail;
+            
+            if (integrity <= 25) {
+                anxietyCounter.innerText = "MAXIMAL PANIC";
+                anxietyCounter.style.color = "var(--accent-red)";
+            } else if (integrity <= 50) {
+                anxietyCounter.innerText = "ELEVATED";
+            }
+            
+            if (integrity <= 0) {
+                setTimeout(() => triggerEndScreen(false), 2000);
+                return;
+            }
+        }
+
+        nextBtn.style.display = 'block';
+    }
+
+    function updateIntegrityUI() {
+        integrityBar.style.width = `${integrity}%`;
+        if (integrity <= 50) {
+            integrityBar.style.backgroundColor = 'var(--warning-orange)';
+        }
+        if (integrity <= 25) {
+            integrityBar.style.backgroundColor = 'var(--accent-red)';
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        loadQuestion();
+    }
+
+    function triggerEndScreen(isWin) {
+        screenOverlay.style.display = 'flex';
+        if (isWin) {
+            overlayTitle.innerText = "SYSTEM SECURED! 🎉";
+            overlayTitle.style.color = "var(--accent-green)";
+            overlayDesc.innerText = `Outstanding computation skills! You successfully resolved all data crises with a structural infrastructure survival score of ${score}/${questions.length}. Go grab a coffee, you've earned a promotion to Master SysAdmin.`;
+        } else {
+            overlayTitle.innerText = "BLUE SCREEN OF DEATH 💀";
+            overlayTitle.style.color = "var(--accent-red)";
+            overlayDesc.innerText = "The server completely overheated, columns collapsed into oceans of raw text anomalies, and the system hard drive turned to liquid slag. You need a refresher on your Cambridge ICT syllabus material!";
+        }
+    }
+
+    function resetGame() {
+        currentIdx = 0;
+        integrity = 100;
+        score = 0;
+        anxietyCounter.innerText = "LOW";
+        anxietyCounter.style.color = "var(--warning-orange)";
+        scoreCounter.innerText = `0/${questions.length}`;
+        integrityBar.style.backgroundColor = 'var(--accent-green)';
+        integrityBar.style.width = '100%';
+        screenOverlay.style.display = 'none';
+        loadQuestion();
+    }
+
+    // Initialize game execution run
+    loadQuestion();
+</script>
+
+</body>
+</html>
